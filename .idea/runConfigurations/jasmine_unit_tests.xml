@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="jasmine unit tests" type="NodeJSConfigurationType" factoryName="Node.js" application-parameters="JASMINE_CONFIG_PATH=spec/support/jasmine.json" node-parameters="--require ./node_modules/ts-node/register" path-to-js-file="./node_modules/.bin/jasmine" working-dir="$PROJECT_DIR$">
+    <method />
+  </configuration>
+</component>

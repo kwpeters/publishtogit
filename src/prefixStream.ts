@@ -52,6 +52,12 @@ export class PrefixStream extends Transform
     }
 
 
+    public get prefix(): string
+    {
+        return this._prefixBuf.toString();
+    }
+
+
     public get flushedPromise()
     {
         return this._flushedDeferred.promise;

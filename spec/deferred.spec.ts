@@ -11,7 +11,7 @@ describe("Deferred", () => {
     });
 
 
-    it('will resolve with the expected value', (done) => {
+    it("will resolve with the expected value", (done) => {
         const dfd = new Deferred<number>();
 
         dfd.promise.then((result) => {
@@ -23,11 +23,11 @@ describe("Deferred", () => {
     });
 
 
-    it('will reject with the expected value', (done) => {
+    it("will reject with the expected value", (done) => {
         const dfd = new Deferred<number>();
 
         dfd.promise.catch((err) => {
-            expect(err).toEqual(5);
+            expect(err).toEqual(6);
             done();
         });
 

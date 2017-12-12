@@ -1,6 +1,8 @@
 const cp = require("child_process");
 import {PrefixStream} from "./prefixStream";
 
+// TODO: Enhance spawn() to take writable streams where stdout and stderr can be
+// redirected to.  This will make the unit test output cleaner.
 
 /**
  * Spawns a child process.  Each stdout and stderr output line is prefixed with
@@ -53,10 +55,10 @@ export function spawn(
             ])
             .then(() => {
                 if (exitCode === 0) {
-                    console.log(`${label}Child process succeeded.`);
+                    console.log(`${stdOutPrepender.prefix}Child process succeeded.`);
                     resolve();
                 } else {
-                    console.log(`${label}Child proccess errored.`);
+                    console.log(`${stdOutPrepender.prefix}Child proccess errored.`);
                     reject();
                 }
             });

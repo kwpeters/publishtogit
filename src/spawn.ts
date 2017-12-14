@@ -1,5 +1,12 @@
+import {CollectorStream} from "./collectorStream";
+
 const cp = require("child_process");
 import {PrefixStream} from "./prefixStream";
+import {Writable} from "stream";
+import {NullStream} from "./nullStream";
+import {eventToPromise, streamToPromise} from "./promiseHelpers";
+import {CombinedStream} from "./combinedStream";
+
 
 // TODO: Enhance spawn() to take writable streams where stdout and stderr can be
 // redirected to.  This will make the unit test output cleaner.
@@ -9,57 +16,71 @@ import {PrefixStream} from "./prefixStream";
  * the specified label.
  * @param description - A textual description of the command that is output when
  *     the child process starts
- * @param label - A label that will prefix each line of stdout and stderr
- * @param cmd - The command to run
+  * @param cmd - The command to run
  * @param args - An array of arguments for cmd
  * @param cwd - The current working directory for the child process
+ * @param stdoutStream - The stream to receive stdout.  A NullStream if
+ * undefined.
+ * For example:
+ * `new CombinedStream(new PrefixStream("foo"), process.stdout)`
+ * @param stderrStream - The stream to receive stderr  A NullStream if undefined.
+ * For example:
+ * `new CombinedStream(new PrefixStream(".    "), process.stderr)`
  * @return {Promise<void>} A Promise that is resolved when the child process's
  *     exit code is 0 and is rejected when it is non-zero.
  */
 export function spawn(
-    description: string,
-    label: string,
     cmd: string,
     args: Array<string>,
-    cwd: string
+    cwd: string,
+    description?: string,
+    stdoutStream?: Writable,
+    stderrStream?: Writable
 ) {
-    console.log("--------------------------------------------------------------------------------");
-    console.log(`${description}: ${label}`);
-    console.log(`    ${getCommandLineRepresentation(cmd, args)}`);
-    console.log("--------------------------------------------------------------------------------");
+    const cmdLineRepresentation = getCommandLineRepresentation(cmd, args);
 
-    const stdOutPrepender = new PrefixStream(label);
-    const stdErrPrepender = new PrefixStream(label);
+    if (description)
+    {
+        console.log("--------------------------------------------------------------------------------");
+        console.log(`${description}`);
+        console.log(`    ${cmdLineRepresentation}`);
+        console.log("--------------------------------------------------------------------------------");
+    }
 
-    return new Promise((resolve: () => void, reject: () => void) => {
+    const stdErrCollector = new CollectorStream();
+
+    return new Promise((resolve: () => void, reject: (err: {exitCode: number, stderr: string}) => void) => {
 
         const childProcess = cp.spawn(cmd, args, {cwd: cwd, stdio: [process.stdin, "pipe", "pipe"]});
 
-        // Pipe both of the child process's output streams through a prepender
-        // and then to the corresponding stream of this process.
+        const outputStream = stdoutStream || new NullStream();
+
         childProcess.stdout
-        .pipe(stdOutPrepender)
-        .pipe(process.stdout);
+        .pipe(outputStream);
+
+        const errorStream = stderrStream || new NullStream();
 
         childProcess.stderr
-        .pipe(stdErrPrepender)
-        .pipe(process.stderr);
+        .pipe(stdErrCollector)  // to capture stderr in case child process errors
+        .pipe(errorStream);
 
         childProcess.once("exit", (exitCode: number) => {
-
             // Wait for all steams to flush before reporting that the child
             // process has finished.
-            Promise.all([
-                (stdOutPrepender as any).flushedPromise,
-                (stdErrPrepender as any).flushedPromise
-            ])
+            eventToPromise(childProcess, "close")
             .then(() => {
                 if (exitCode === 0) {
-                    console.log(`${stdOutPrepender.prefix}Child process succeeded.`);
+                    if (description)
+                    {
+                        console.log(`Child process succeeded: ${cmdLineRepresentation}`);
+                    }
                     resolve();
                 } else {
-                    console.log(`${stdOutPrepender.prefix}Child proccess errored.`);
-                    reject();
+                    if (description)
+                    {
+                        console.log(`Child process failed: ${cmdLineRepresentation}`);
+                    }
+                    reject({exitCode: exitCode, stderr: stdErrCollector.collected});
                 }
             });
         });

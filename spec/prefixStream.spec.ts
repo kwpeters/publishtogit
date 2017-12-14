@@ -1,6 +1,6 @@
 import {PrefixStream} from "../src/prefixStream";
-import {SourceStream} from "./sourceStream";
-import {CollectorStream} from "./collectorStream";
+import {SourceStream} from "../src/sourceStream";
+import {CollectorStream} from "../src/collectorStream";
 
 
 describe("PrefixStream", () => {
@@ -22,7 +22,7 @@ describe("PrefixStream", () => {
         .pipe(collectorStream);
 
         collectorStream.on("finish", () => {
-            expect(collectorStream.collected).toEqual(["[prefix] a\n", "[prefix] b\n", "[prefix] c\n"]);
+            expect(collectorStream.collected).toEqual("[prefix] a\n[prefix] b\n[prefix] c\n");
             done();
         });
     });

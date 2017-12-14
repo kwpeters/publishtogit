@@ -1,12 +1,14 @@
 import {Writable} from "stream";
+import {EventEmitter} from "events";
+import {ListenerTracker} from "./listenerTracker";
+
 
 type CallBackType<ResultType> = (err: any, result?: ResultType) => void;
 
 
 /**
- * Takes a Node-style async function with any number of arguments and a callback
- * and returns a function that accepts the same number of arguments (minus the
- * callback) and returns a promise for the result.
+ * Adapts a Node-style async function with any number of arguments and a callback to a
+ * function that has the same arguments (minus the callback) and returns a Promise.
  * @param func - The Node-style function that takes arguments followed by a
  * Node-style callback.
  * @return A function that takes the arguments and returns a Promise for the result.
@@ -31,9 +33,9 @@ export function promisifyN<ResultType>(
 }
 
 /**
- * Takes a Node-style async function with one argument and a callback and returns
- * a function that accepts that one argument and returns a promise for the result.
- * This function is similar to promisifyN(), except that it retains type safety.
+ * Adapts a Node-style async function with one parameter and a callback to a
+ * function that takes one parameter and returns a Promise.  This function is
+ * similar to promisifyN(), except that it retains type safety.
  * @param func - The Node-style function that takes one argument and a
  * Node-style callback.
  * @return A function that takes the one argument and returns a Promise for the
@@ -45,11 +47,11 @@ export function promisify1<ResultType, Arg1Type>(
 
     const promisifiedFunc = function (arg1: Arg1Type): Promise<ResultType> {
         return new Promise<ResultType>((resolve: (result: ResultType) => void, reject: (err: any) => void) => {
-            func(arg1, (err: any, result: ResultType) => {
+            func(arg1, (err: any, result?: ResultType) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(result);
+                    resolve(result!);
                 }
             });
         })
@@ -60,9 +62,9 @@ export function promisify1<ResultType, Arg1Type>(
 
 
 /**
- * Takes a Node-style async function with two arguments and a callback and returns
- * a function that accepts the two arguments and returns a promise for the result.
- * This function is similar to promisifyN(), except that it retains type safety.
+ * Adapts a Node-style async function with two parameters and a callback to a function
+ * that takes two parameters and returns a Promise.  This function is similar to
+ * promisifyN(), except that it retains type safety.
  * @param func - The Node-style function that takes two arguments and a
  * Node-style callback.
  * @return A function that takes the two arguments and returns a Promise for the
@@ -74,11 +76,11 @@ export function promisify2<ResultType, Arg1Type, Arg2Type>(
 
     const promisifiedFunc = function (arg1: Arg1Type, arg2: Arg2Type): Promise<ResultType> {
         return new Promise<ResultType>((resolve: (result: ResultType) => void, reject: (err: any) => void) => {
-            func(arg1, arg2, (err: any, result: ResultType) => {
+            func(arg1, arg2, (err: any, result?: ResultType) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(result);
+                    resolve(result!);
                 }
             });
         })
@@ -112,14 +114,46 @@ export function sequence(
 }
 
 
-export function streamToPromise(stream: Writable): Promise<void> {
-     return new Promise<void>((resolve: () => void, reject: (err: any) => void) => {
-         stream.on("finish", () => {
-             resolve();
-         });
+/**
+ * Adapts an EventEmitter to a Promise interface
+ * @param emitter - The event emitter to listen to
+ * @param resolveEventName - The event that will cause the Promise to resolve
+ * @param rejectEventName - The event that will cause the Promise to reject
+ * @return A Promise that will will resolve and reject as specified
+ */
+export function eventToPromise<ResolveType>(
+    emitter: EventEmitter,
+    resolveEventName: string,
+    rejectEventName?: string
+): Promise<ResolveType>
+{
+    return new Promise<ResolveType>(
+        (resolve: (result: ResolveType) => void, reject: (err: any) => void) => {
+            const tracker = new ListenerTracker(emitter);
 
-         stream.on("error", (err) => {
-             reject(err);
-         });
-     });
+            tracker.once(resolveEventName, (result: ResolveType) => {
+                tracker.removeAll();
+                resolve(result);
+            });
+
+            if (rejectEventName)
+            {
+                tracker.once(rejectEventName, (err: any) => {
+                    tracker.removeAll();
+                    reject(err);
+                });
+            }
+        }
+    );
+}
+
+
+/**
+ * Adapts a stream to a Promise interface.
+ * @param stream - The stream to be adapted
+ * @return A Promise that will be resolved when the stream emits the "finish"
+ * event and rejects when it emits an "error" event.
+ */
+export function streamToPromise(stream: Writable): Promise<void> {
+    return eventToPromise(stream, "finish", "error");
 }

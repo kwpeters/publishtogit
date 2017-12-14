@@ -186,7 +186,7 @@ describe("isFile()", () => {
 });
 
 
-describe("deleteFile", () => {
+describe("deleteFile()", () => {
 
     it("will delete the specified file", function (done) {
         const filePathA = path.join(TMP_DIR_PATH, "a.txt");
@@ -209,6 +209,20 @@ describe("deleteFile", () => {
             done();
         });
 
+    });
+
+
+    it("will resolve when the specified file does not exist", (done) => {
+        const filePathA = path.join(TMP_DIR_PATH, "xyzzy.txt");
+
+        isFile(filePathA)
+        .then((isFile: boolean) => {
+            expect(isFile).toBeFalsy();
+            return deleteFile(filePathA);
+        })
+        .then(() => {
+            done();
+        });
     });
 
 });

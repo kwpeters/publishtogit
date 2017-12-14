@@ -136,5 +136,12 @@ export function isFile(path: string): Promise<boolean> {
 
 
 export function deleteFile(filePath: string): Promise<void> {
-    return unlinkAsync(filePath);
+    return isFile(filePath)
+    .then((isFile: boolean) => {
+        if (!isFile) {
+            return Promise.resolve();
+        } else {
+            return unlinkAsync(filePath);
+        }
+    });
 }

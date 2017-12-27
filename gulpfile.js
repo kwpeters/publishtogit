@@ -32,6 +32,8 @@ function runTslint(emitError)
         __dirname
     )
     .catch((err) => {
+        // If we're supposed to emit an error, then go ahead and rethrow it.
+        // Otherwise, just eat it.
         if (emitError) {
             throw err;
         }

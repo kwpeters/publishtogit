@@ -90,7 +90,7 @@ describe("spawn", () => {
         .catch((err) => {
             expect(err).toBeTruthy();
             expect(err.exitCode).not.toEqual(0);
-            expect(err.stderr).toContain("No such file or directory")
+            expect(err.stderr).toContain("No such file or directory");
             done();
         });
     });

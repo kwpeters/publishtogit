@@ -22,7 +22,7 @@ export function isDirectory(path: string): Promise<boolean> {
 }
 
 
-export function ensureDirectoryExists(dirPath: string) {
+export function ensureDirectoryExists(dirPath: string): Promise<boolean> {
 
     return isDirectory(dirPath)
     .then((isDirectory: boolean) => {
@@ -60,7 +60,7 @@ export function ensureDirectoryExists(dirPath: string) {
             // Map each successively longer path to a function that will create
             // it.
             const createFuncs = dirsToCreate.map((dirToCreate: string) => {
-                return () => {
+                return (): Promise<void> => {
                     return mkdirAsync(dirToCreate)
                     .catch((err) => {
                         // If the directory already exists, just keep going.
@@ -68,7 +68,7 @@ export function ensureDirectoryExists(dirPath: string) {
                             throw err;
                         }
                     });
-                }
+                };
             });
 
             // Execute the directory creation functions in sequence.
@@ -83,6 +83,8 @@ export function emptyDirectory(dirPath: string): Promise<void> {
     return deleteDirectory(dirPath)
     .then(() => {
         return ensureDirectoryExists(dirPath);
+    })
+    .then(() => {
     });
 }
 

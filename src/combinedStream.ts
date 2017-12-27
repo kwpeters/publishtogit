@@ -1,4 +1,4 @@
-import {PassThrough, Readable, Writable, WritableOptions, Stream} from "stream";
+import {PassThrough, Readable, Writable, Stream} from "stream";
 
 export class CombinedStream extends PassThrough
 {
@@ -10,76 +10,23 @@ export class CombinedStream extends PassThrough
         super();
         this._streams = streams;
 
-        this.on('pipe', (source: Readable) => {
+        this.on("pipe", (source: Readable) => {
             source.unpipe(this);
 
             let streamEnd: Stream = source;
-            for(let i in this._streams) {
-                streamEnd = streamEnd.pipe(<Writable>this._streams[i]);
+
+            for (let streamIndex: number = 0; streamIndex < this._streams.length; ++streamIndex)
+            {
+                streamEnd = streamEnd.pipe(<Writable>this._streams[streamIndex]);
             }
+
             this._streamEnd = streamEnd;
-            // this.transformStream = source;
         });
     }
 
-    pipe<T extends NodeJS.WritableStream>(dest: T, options?: { end?: boolean; }): T
+    public pipe<T extends NodeJS.WritableStream>(dest: T, options?: { end?: boolean; }): T
     {
         return this._streamEnd.pipe(dest, options);
     }
 
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-// import {inherits} from "util";
-// import {PassThrough, Readable, Writable, WritableOptions} from "stream";
-//
-// export const CombinedStream = function(this: any, ...streams: Array<Readable | Writable>) {
-//     this.streams = streams;
-//     // this.streams = Array.prototype.slice.apply(arguments);
-//
-//     this.on('pipe', function(this: any, source: Readable) {
-//         source.unpipe(this);
-//         for(let i in this.streams) {
-//             source = source.pipe(this.streams[i]);
-//         }
-//         this.transformStream = source;
-//     });
-// };
-//
-// inherits(CombinedStream, PassThrough);
-//
-// CombinedStream.prototype.pipe = function(dest: Writable, options: WritableOptions) {
-//     return this.transformStream.pipe(dest, options);
-// };
-
-// var stream3 = new CombinedStream(stream1, stream2);
-// stdin.pipe(stream3).pipe(stdout);
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-// var util = require('util');
-// var PassThrough = require('stream').PassThrough;
-//
-// var CombinedStream = function() {
-//     this.streams = Array.prototype.slice.apply(arguments);
-//
-//     this.on('pipe', function(source) {
-//         source.unpipe(this);
-//         for(i in this.streams) {
-//             source = source.pipe(this.streams[i]);
-//         }
-//         this.transformStream = source;
-//     });
-// };
-//
-// util.inherits(CombinedStream, PassThrough);
-//
-// CombinedStream.prototype.pipe = function(dest, options) {
-//     return this.transformStream.pipe(dest, options);
-// };
-//
-// var stream3 = new CombinedStream(stream1, stream2);
-// stdin.pipe(stream3).pipe(stdout);

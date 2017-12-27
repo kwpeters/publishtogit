@@ -2,7 +2,7 @@ import {EventEmitter} from "events";
 import {ListenerTracker} from "../src/listenerTracker";
 
 
-describe("ListenerTracker", function () {
+describe("ListenerTracker", () => {
 
     it("on() will register for the specified event using on()", () => {
         const ee      = new EventEmitter();

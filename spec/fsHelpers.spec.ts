@@ -21,7 +21,7 @@ describe("isDirectory()", () => {
     });
 
 
-    it("will resolve to false for a directory that does not exist", function (done) {
+    it("will resolve to false for a directory that does not exist", (done) => {
         isDirectory(path.join(__dirname, "xyzzy"))
         .then((isDirectory: boolean) => {
             expect(isDirectory).toBeFalsy();
@@ -42,7 +42,7 @@ describe("isDirectory()", () => {
 });
 
 
-describe("ensureDirectoryExists()", function () {
+describe("ensureDirectoryExists()", () => {
 
 
     it("will make sure all necessary directories exist", (done) => {
@@ -79,7 +79,7 @@ describe("emptyDirectory()", () => {
     });
 
 
-    it("will remove files from the specified directory", function (done) {
+    it("will remove files from the specified directory", (done) => {
 
         const filePathA = path.join(TMP_DIR_PATH, "a.txt");
         const filePathB = path.join(TMP_DIR_PATH, "b.txt");
@@ -88,7 +88,7 @@ describe("emptyDirectory()", () => {
         Promise.all([
             writeFileAsync(filePathA, "This is file A"),
             writeFileAsync(filePathB, "This is file B"),
-            writeFileAsync(filePathC, "This is file C"),
+            writeFileAsync(filePathC, "This is file C")
         ])
         .then(() => {
             return emptyDirectory(TMP_DIR_PATH);
@@ -165,7 +165,7 @@ describe("isFile()", () => {
     });
 
 
-    it("will resolve to false for a file that does not exist", function (done) {
+    it("will resolve to false for a file that does not exist", (done) => {
         isFile(path.join(__dirname, "xyzzy.txt"))
         .then((isFile: boolean) => {
             expect(isFile).toBeFalsy();
@@ -188,7 +188,7 @@ describe("isFile()", () => {
 
 describe("deleteFile()", () => {
 
-    it("will delete the specified file", function (done) {
+    it("will delete the specified file", (done) => {
         const filePathA = path.join(TMP_DIR_PATH, "a.txt");
 
         writeFileAsync(filePathA, "This is file A")

@@ -1,22 +1,16 @@
 import {CollectorStream} from "./collectorStream";
-
-const cp = require("child_process");
-import {PrefixStream} from "./prefixStream";
+import * as cp from "child_process";
 import {Writable} from "stream";
 import {NullStream} from "./nullStream";
-import {eventToPromise, streamToPromise} from "./promiseHelpers";
-import {CombinedStream} from "./combinedStream";
+import {eventToPromise} from "./promiseHelpers";
 
-
-// TODO: Enhance spawn() to take writable streams where stdout and stderr can be
-// redirected to.  This will make the unit test output cleaner.
 
 /**
  * Spawns a child process.  Each stdout and stderr output line is prefixed with
  * the specified label.
  * @param description - A textual description of the command that is output when
  *     the child process starts
-  * @param cmd - The command to run
+ * @param cmd - The command to run
  * @param args - An array of arguments for cmd
  * @param cwd - The current working directory for the child process
  * @param stdoutStream - The stream to receive stdout.  A NullStream if
@@ -36,7 +30,7 @@ export function spawn(
     description?: string,
     stdoutStream?: Writable,
     stderrStream?: Writable
-) {
+): Promise<void> {
     const cmdLineRepresentation = getCommandLineRepresentation(cmd, args);
 
     if (description)
@@ -89,7 +83,7 @@ export function spawn(
 }
 
 
-function getCommandLineRepresentation(cmd: string, args: Array<string>)
+function getCommandLineRepresentation(cmd: string, args: Array<string>): string
 {
     args = args.map((curArg) =>
     {

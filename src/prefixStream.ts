@@ -19,7 +19,7 @@ export class PrefixStream extends Transform
     }
 
 
-    public _transform(chunk: Buffer | string, encoding: string, done: Function)
+    public _transform(chunk: Buffer | string, encoding: string, done: Function): void
     {
         // Convert to a Buffer.
         const chunkBuf: Buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
@@ -28,19 +28,20 @@ export class PrefixStream extends Transform
             Buffer.concat([this._partial, chunkBuf]) :
             chunkBuf;
 
-        let index: number;
-
         // While complete lines exist, push them.
-        while ((index = this._partial.indexOf('\n')) !== -1) {
+        let index: number = this._partial.indexOf("\n");
+        while (index !== -1) {
             const line = this._partial.slice(0, ++index);
             this._partial = this._partial.slice(index);
-            this.push(Buffer.concat([this._prefixBuf, line]))
+            this.push(Buffer.concat([this._prefixBuf, line]));
+
+            index = this._partial.indexOf("\n");
         }
         done();
     }
 
 
-    public _flush(done: Function)
+    public _flush(done: Function): void
     {
         if (this._partial && this._partial.length)
         {
@@ -58,7 +59,7 @@ export class PrefixStream extends Transform
     }
 
 
-    public get flushedPromise()
+    public get flushedPromise(): Promise<void>
     {
         return this._flushedDeferred.promise;
     }

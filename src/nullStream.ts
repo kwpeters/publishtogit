@@ -8,7 +8,7 @@ export class NullStream extends Writable
     }
 
 
-    public _write(chunk: string | Buffer, encoding: string, callback: Function)
+    public _write(chunk: string | Buffer, encoding: string, callback: Function): void
     {
         callback();
     }

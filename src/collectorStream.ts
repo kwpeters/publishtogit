@@ -18,7 +18,7 @@ export class CollectorStream extends Transform
     }
 
 
-    public _transform(chunk: Buffer | string, encoding: string, done: Function)
+    public _transform(chunk: Buffer | string, encoding: string, done: Function): void
     {
         // Convert to a Buffer.
         const chunkBuf: Buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
@@ -29,7 +29,7 @@ export class CollectorStream extends Transform
     }
 
 
-    public _flush(done: Function)
+    public _flush(done: Function): void
     {
         this._flushedDeferred.resolve(undefined);
         done();
@@ -42,7 +42,7 @@ export class CollectorStream extends Transform
     }
 
 
-    public get flushedPromise()
+    public get flushedPromise(): Promise<void>
     {
         return this._flushedDeferred.promise;
     }

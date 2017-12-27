@@ -1,5 +1,4 @@
 import {EventEmitter} from "events";
-import * as _ from "lodash";
 
 
 /**
@@ -61,11 +60,15 @@ export class ListenerTracker {
      * directly with the wrapped emitter, those listeners will not be removed.
      */
     public removeAll(): void {
-        _.forEach(this._listenerMap, (listeners, eventName) => {
-            _.forEach(listeners, (curListener) => {
+        Object.keys(this._listenerMap).forEach((eventName) => {
+
+            const listeners = this._listenerMap[eventName];
+            listeners.forEach((curListener) => {
                 this._emitter.removeListener(eventName, curListener);
             });
+
         });
+
         this._listenerMap = {};
     }
 

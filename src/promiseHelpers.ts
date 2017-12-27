@@ -54,7 +54,7 @@ export function promisify1<ResultType, Arg1Type>(
                     resolve(result!);
                 }
             });
-        })
+        });
     };
     return promisifiedFunc;
 
@@ -83,7 +83,7 @@ export function promisify2<ResultType, Arg1Type, Arg2Type>(
                     resolve(result!);
                 }
             });
-        })
+        });
     };
     return promisifiedFunc;
 }

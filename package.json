@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "A command line tool for publishing a npm package to a Git repository",
   "main": "index.js",
-  "scripts": {
-    "test": "./node_modules/.bin/ts-node ./node_modules/.bin/jasmine JASMINE_CONFIG_PATH=spec/support/jasmine.json"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kwpeters/publish-to-git.git"

@@ -23,6 +23,18 @@ describe("spawn", () => {
     });
 
 
+    it("will resolve with the stdout text", (done) => {
+        spawn("touch", ["foo.txt"], TMP_DIR_PATH)
+        .then(() => {
+            return spawn("ls", [], TMP_DIR_PATH);
+        })
+        .then((output) => {
+            expect(output).toContain("foo.txt");
+            done();
+        });
+    });
+
+
     // it("will run multiple child processes at once", (done) => {
     //
     //     // The following examples demonstrate how to use the description string

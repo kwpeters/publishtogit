@@ -7,6 +7,7 @@ const mkdirAsync = promisify1<void, string>(fs.mkdir);
 const readdirAsync = promisify1<Array<string>, string>(fs.readdir);
 const unlinkAsync = promisify1<void, string>(fs.unlink);
 const rmdirAsync = promisify1<void, string>(fs.rmdir);
+const statAsync  = promisify1<fs.Stats, string>(fs.stat);
 
 
 export function isDirectory(path: string): Promise<boolean> {
@@ -145,5 +146,40 @@ export function deleteFile(filePath: string): Promise<void> {
         } else {
             return unlinkAsync(filePath);
         }
+    });
+}
+
+
+interface IDirectoryContents {
+    subdirs: Array<string>;
+    files:   Array<string>;
+}
+
+
+export function readDir(dirPath: string): Promise<IDirectoryContents> {
+
+    return readdirAsync(dirPath)
+    .then((fsEntries) => {
+        const absPaths = fsEntries.map((curEntry) => {
+            return path.resolve(path.join(dirPath, curEntry));
+        });
+
+        const contents: IDirectoryContents = {subdirs: [], files: []};
+
+        const promises = absPaths.map((curAbsPath) => {
+            return statAsync(curAbsPath)
+            .then((stats) => {
+                if (stats.isFile()) {
+                    contents.files.push(curAbsPath);
+                } else if (stats.isDirectory()) {
+                    contents.subdirs.push(curAbsPath);
+                }
+            });
+        });
+
+        return Promise.all(promises)
+        .then(() => {
+            return contents;
+        });
     });
 }

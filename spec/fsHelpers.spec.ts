@@ -1,8 +1,8 @@
 import * as path from "path";
 import * as fs from "fs";
 import {isDirectory, isFile, ensureDirectoryExists, emptyDirectory, deleteFile,
-    deleteDirectory} from "../src/fsHelpers";
-import {TMP_DIR_PATH} from "./specHelpers";
+    deleteDirectory, readDir} from "../src/fsHelpers";
+import {TMP_DIR_PATH, resetTmpFolder} from "./specHelpers";
 import {promisify2} from "../src/promiseHelpers";
 
 
@@ -223,6 +223,51 @@ describe("deleteFile()", () => {
         .then(() => {
             done();
         });
+    });
+
+});
+
+
+describe("readDir()", () => {
+
+
+    beforeEach((done) => {
+        resetTmpFolder()
+        .then(done);
+    });
+
+
+    it("description", (done) => {
+
+        const dirA = path.join(TMP_DIR_PATH, "dirA");
+        const fileA = path.join(dirA, "a.txt");
+
+        const dirB = path.join(TMP_DIR_PATH, "dirB");
+        const fileB = path.join(dirA, "b.txt");
+
+        const fileC = path.join(TMP_DIR_PATH, "c.txt");
+
+
+        Promise.all([
+            ensureDirectoryExists(dirA),
+            ensureDirectoryExists(dirB)
+        ])
+        .then(() => {
+            return Promise.all([
+                writeFileAsync(fileA, "This is file A"),
+                writeFileAsync(fileB, "This is file B"),
+                writeFileAsync(fileC, "This is file C")
+            ]);
+        })
+        .then(() => {
+            return readDir(TMP_DIR_PATH);
+        })
+        .then((result) => {
+            expect(result.subdirs.length).toEqual(2);
+            expect(result.files.length).toEqual(1);
+            done();
+        });
+
     });
 
 });

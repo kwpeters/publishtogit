@@ -20,8 +20,8 @@ import {eventToPromise} from "./promiseHelpers";
  * @param stderrStream - The stream to receive stderr  A NullStream if undefined.
  * For example:
  * `new CombinedStream(new PrefixStream(".    "), process.stderr)`
- * @return {Promise<void>} A Promise that is resolved when the child process's
- *     exit code is 0 and is rejected when it is non-zero.
+ * @return {Promise<string>} A Promise that is resolved when the child process's
+ *     output when the exit code is 0 and is rejected when it is non-zero.
  */
 export function spawn(
     cmd: string,
@@ -30,7 +30,7 @@ export function spawn(
     description?: string,
     stdoutStream?: Writable,
     stderrStream?: Writable
-): Promise<void> {
+): Promise<string> {
     const cmdLineRepresentation = getCommandLineRepresentation(cmd, args);
 
     if (description)
@@ -41,21 +41,24 @@ export function spawn(
         console.log("--------------------------------------------------------------------------------");
     }
 
-    const stdErrCollector = new CollectorStream();
+    const stdoutCollector = new CollectorStream();
+    const stderrCollector = new CollectorStream();
 
-    return new Promise((resolve: () => void, reject: (err: {exitCode: number, stderr: string}) => void) => {
+
+    return new Promise((resolve: (output: string) => void, reject: (err: {exitCode: number, stderr: string}) => void) => {
 
         const childProcess = cp.spawn(cmd, args, {cwd: cwd, stdio: [process.stdin, "pipe", "pipe"]});
 
         const outputStream = stdoutStream || new NullStream();
 
         childProcess.stdout
+        .pipe(stdoutCollector)
         .pipe(outputStream);
 
         const errorStream = stderrStream || new NullStream();
 
         childProcess.stderr
-        .pipe(stdErrCollector)  // to capture stderr in case child process errors
+        .pipe(stderrCollector)  // to capture stderr in case child process errors
         .pipe(errorStream);
 
         childProcess.once("exit", (exitCode: number) => {
@@ -68,13 +71,13 @@ export function spawn(
                     {
                         console.log(`Child process succeeded: ${cmdLineRepresentation}`);
                     }
-                    resolve();
+                    resolve(stdoutCollector.collected);
                 } else {
                     if (description)
                     {
                         console.log(`Child process failed: ${cmdLineRepresentation}`);
                     }
-                    reject({exitCode: exitCode, stderr: stdErrCollector.collected});
+                    reject({exitCode: exitCode, stderr: stderrCollector.collected});
                 }
             });
         });

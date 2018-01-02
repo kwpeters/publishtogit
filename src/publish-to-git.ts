@@ -10,6 +10,10 @@ import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 function main(): void
 {
     const srcDir = process.argv[2];
+    if (!srcDir) {
+        console.error("Source directory argument not specified!");
+        return;
+    }
 
     const publishConfig = readConfig<IPublishToGitConfig>(srcDir, "publishtogit.json");
     const packageConfig = readConfig<IPackageJson>(srcDir, "package.json");

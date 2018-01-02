@@ -2,10 +2,10 @@ import * as path from "path";
 import * as fs from "fs";
 import {
     isDirectory, isFile, ensureDirectoryExists, emptyDirectory, deleteFile,
-    deleteDirectory, readDir, dirIsEmpty
+    deleteDirectory, readDir, dirIsEmpty, pruneDir
 } from "../src/fsHelpers";
 import {TMP_DIR_PATH, resetTmpFolder} from "./specHelpers";
-import {promisify2} from "../src/promiseHelpers";
+import {promisify2, sequence} from "../src/promiseHelpers";
 
 
 const writeFileAsync = promisify2<void, string, string>(fs.writeFile);
@@ -233,9 +233,8 @@ describe("deleteFile()", () => {
 describe("readDir()", () => {
 
 
-    beforeEach((done) => {
-        resetTmpFolder()
-        .then(done);
+    beforeEach(() => {
+        return resetTmpFolder();
     });
 
 
@@ -279,9 +278,8 @@ describe("readDir()", () => {
 describe("dirIsEmpty()", () => {
 
 
-    beforeEach((done) => {
-        resetTmpFolder()
-        .then(done);
+    beforeEach(() => {
+        return resetTmpFolder();
     });
 
 
@@ -316,6 +314,75 @@ describe("dirIsEmpty()", () => {
         .then((isEmpty) => {
             expect(isEmpty).toBeTruthy();
             done();
+        });
+    });
+
+
+});
+
+
+describe("pruneDir()", function () {
+
+
+    beforeEach(() => {
+        return resetTmpFolder();
+    });
+
+
+    it("will recursively remove all subdirectories", () => {
+
+        return sequence([
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")); }
+        ], undefined)
+        .then(() => {
+            return pruneDir(TMP_DIR_PATH);
+        })
+        .then(() => {
+            return dirIsEmpty(TMP_DIR_PATH);
+        })
+        .then((isEmpty) => {
+            expect(isEmpty).toBeTruthy();
+        });
+    });
+
+
+    it("will not prune directories containing files", () => {
+
+        return sequence([
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")); },
+            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")); },
+            () => { return writeFileAsync(path.join(TMP_DIR_PATH, "dirA", "foo.txt"), "This is foo.txt"); }
+        ], undefined)
+        .then(() => {
+            return pruneDir(TMP_DIR_PATH);
+        })
+        .then(() => {
+            return dirIsEmpty(TMP_DIR_PATH);
+        })
+        .then((isEmpty) => {
+            expect(isEmpty).toBeFalsy();
+            return readDir(TMP_DIR_PATH);
+        })
+        .then((contents) => {
+            expect(contents.subdirs.length).toEqual(1);
+            expect(contents.subdirs).toContain(path.join(TMP_DIR_PATH, "dirA"));
+            expect(contents.files.length).toEqual(0);
+
+            return Promise.all([
+                isDirectory(path.join(TMP_DIR_PATH, "dirA", "dirBa")),
+                isDirectory(path.join(TMP_DIR_PATH, "dirA", "dirBb")),
+                isFile(path.join(TMP_DIR_PATH, "dirA", "foo.txt"))
+            ]);
+        })
+        .then((results) => {
+            expect(results[0]).toBeFalsy();
+            expect(results[1]).toBeFalsy();
+            expect(results[2]).toBeTruthy();
         });
     });
 

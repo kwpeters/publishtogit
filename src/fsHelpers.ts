@@ -156,6 +156,12 @@ interface IDirectoryContents {
 }
 
 
+/**
+ * Reads the contents of the specified directory.
+ * @param dirPath - The directory to read
+ * @return The contents of the directory, separated into a list of files and a
+ * lit of subdirectories.  All paths returned are absolute paths.
+ */
 export function readDir(dirPath: string): Promise<IDirectoryContents> {
 
     return readdirAsync(dirPath)
@@ -189,5 +195,41 @@ export function dirIsEmpty(dirPath: string): Promise<boolean> {
     return readdirAsync(dirPath)
     .then((fsEntries) => {
         return fsEntries.length === 0;
+    });
+}
+
+
+/**
+ * Recursively removes empty subdirectories from within the specified directory.
+ * @param dirPath - The directory to prune
+ * @return A Promise that is resolved when the directory has been pruned.
+ */
+export function pruneDir(dirPath: string): Promise<void> {
+    
+    return readDir(dirPath)
+    .then((contents) => {
+        const promises = contents.subdirs.map((curSubdir) => {
+            
+            //
+            // Prune the subdirectory.
+            //
+            return pruneDir(curSubdir)
+            .then(() => {
+                //
+                // If the subdirectory is now empty, delete it.
+                //
+                return dirIsEmpty(curSubdir);
+            })
+            .then((dirIsEmpty) => {
+                if (dirIsEmpty) {
+                    return deleteDirectory(curSubdir);
+                }
+            })
+            .then(() => {});
+        });
+
+        return Promise.all(promises)
+        .then(() => {
+        });
     });
 }

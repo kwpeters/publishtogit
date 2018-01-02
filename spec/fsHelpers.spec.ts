@@ -1,7 +1,9 @@
 import * as path from "path";
 import * as fs from "fs";
-import {isDirectory, isFile, ensureDirectoryExists, emptyDirectory, deleteFile,
-    deleteDirectory, readDir} from "../src/fsHelpers";
+import {
+    isDirectory, isFile, ensureDirectoryExists, emptyDirectory, deleteFile,
+    deleteDirectory, readDir, dirIsEmpty
+} from "../src/fsHelpers";
 import {TMP_DIR_PATH, resetTmpFolder} from "./specHelpers";
 import {promisify2} from "../src/promiseHelpers";
 
@@ -237,7 +239,7 @@ describe("readDir()", () => {
     });
 
 
-    it("description", (done) => {
+    it("will read the files and subdirectories within a directory", (done) => {
 
         const dirA = path.join(TMP_DIR_PATH, "dirA");
         const fileA = path.join(dirA, "a.txt");
@@ -269,5 +271,53 @@ describe("readDir()", () => {
         });
 
     });
+
+
+});
+
+
+describe("dirIsEmpty()", () => {
+
+
+    beforeEach((done) => {
+        resetTmpFolder()
+        .then(done);
+    });
+
+
+    it("will return false when a directory contains a file", (done) => {
+
+        writeFileAsync(path.join(TMP_DIR_PATH, "foo.txt"), "This is foo.txt")
+        .then(() => {
+            return dirIsEmpty(TMP_DIR_PATH);
+        })
+        .then((isEmpty) => {
+            expect(isEmpty).toBeFalsy();
+            done();
+        });
+    });
+
+
+    it("will return false when a directory contains a subdirectory", (done) => {
+
+        ensureDirectoryExists(path.join(TMP_DIR_PATH, "foo"))
+        .then(() => {
+            return dirIsEmpty(TMP_DIR_PATH);
+        })
+        .then((isEmpty) => {
+            expect(isEmpty).toBeFalsy();
+            done();
+        });
+    });
+
+
+    it("will return true when a directory is empty", (done) => {
+        dirIsEmpty(TMP_DIR_PATH)
+        .then((isEmpty) => {
+            expect(isEmpty).toBeTruthy();
+            done();
+        });
+    });
+
 
 });

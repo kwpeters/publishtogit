@@ -183,3 +183,11 @@ export function readDir(dirPath: string): Promise<IDirectoryContents> {
         });
     });
 }
+
+
+export function dirIsEmpty(dirPath: string): Promise<boolean> {
+    return readdirAsync(dirPath)
+    .then((fsEntries) => {
+        return fsEntries.length === 0;
+    });
+}

@@ -53,12 +53,15 @@ function main(): void
     .then(() => {
         console.log("Done.");
     });
-
-
 }
 
 
-function deleteTrackedFiles(repo: GitRepo)
+/**
+ * Deletes all tracked files within a repo.
+ * @param repo - The repo to clear
+ * @return A Promise that is resolved when all files have been deleted.
+ */
+function deleteTrackedFiles(repo: GitRepo): Promise<void>
 {
     return repo.files()
     .then((relFilePaths) => {
@@ -72,6 +75,8 @@ function deleteTrackedFiles(repo: GitRepo)
         });
 
         return Promise.all(deletePromises);
+    })
+    .then(() => {
     });
 }
 

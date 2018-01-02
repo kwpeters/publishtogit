@@ -41,19 +41,34 @@ function main(): void
     .then((repo) => {
         publishRepo = repo;
 
-        return publishRepo.files();
-    })
-    .then((files) => {
-        console.log(`files: ${JSON.stringify(files, undefined, 2)}`);
-        const deletePromises = files.map((curFile) => {
-            return deleteFile(curFile);
-        });
+        //
+        // Delete all files in the publish repo.
+        //
+        return deleteTrackedFiles(publishRepo);
     })
     .then(() => {
         console.log("Done.");
     });
 
 
+}
+
+
+function deleteTrackedFiles(repo: GitRepo)
+{
+    return repo.files()
+    .then((relFilePaths) => {
+        const deletePromises = relFilePaths.map((curRelPath) => {
+            // Make the relative file paths absolute.
+            return path.join(repo.directory, curRelPath);
+        })
+        .map((curAbsPath) => {
+            // Delete
+            return deleteFile(curAbsPath);
+        });
+
+        return Promise.all(deletePromises);
+    });
 }
 
 

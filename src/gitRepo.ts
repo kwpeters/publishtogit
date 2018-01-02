@@ -110,7 +110,7 @@ export class GitRepo
     /**
      * Gets the files that are under Git version control.
      * @return A Promise for an array of files under Git version control.  Each
-     * string is the file's relative path within the repo.
+     * string is the file's *relative* path within the repo.
      */
     public files(): Promise<Array<string>>
     {

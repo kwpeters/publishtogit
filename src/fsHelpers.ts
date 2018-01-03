@@ -358,6 +358,63 @@ export class Directory
 
         return contents;
     }
+
+
+    /**
+     * Recursively removes empty subdirectories from within this directory.
+     * @return A Promise that is resolved when this directory has been pruned.
+     */
+    public prune(): Promise<void>
+    {
+        return this.contents()
+        .then((contents) => {
+            const promises = contents.subdirs.map((curSubdir) => {
+                const subdir = new Directory(curSubdir);
+                //
+                // Prune the current subdirectory.
+                //
+                return subdir.prune()
+                .then(() => {
+                    //
+                    // If the subdirectory is now empty, delete it.
+                    //
+                    return subdir.isEmpty();
+                })
+                .then((dirIsEmpty) => {
+                    if (dirIsEmpty) {
+                        return subdir.delete();
+                    }
+                });
+            });
+
+            return Promise.all(promises)
+            .then(() => {
+            });
+        });
+    }
+
+
+    /**
+     * Recursively removes empty subdirectories from this directory.
+     */
+    public pruneSync(): void
+    {
+        const contents = this.contentsSync();
+        contents.subdirs.forEach((curSubdir) => {
+            const subdir = new Directory(curSubdir);
+            subdir.pruneSync();
+
+            //
+            // If the subdirectory is now empty, delete it.
+            //
+            if (subdir.isEmptySync())
+            {
+                subdir.deleteSync();
+            }
+        });
+    }
+
+
 }
 
 
@@ -441,65 +498,4 @@ export class File
         fs.unlinkSync(this._filePath);
     }
 
-}
-
-
-
-/**
- * Recursively removes empty subdirectories from within the specified directory.
- * @param dirPath - The directory to prune
- * @return A Promise that is resolved when the directory has been pruned.
- */
-export function pruneDir(dirPath: string): Promise<void> {
-
-    const dir = new Directory(dirPath);
-    
-    return dir.contents()
-    .then((contents) => {
-        const promises = contents.subdirs.map((curSubdir) => {
-            const subdir = new Directory(curSubdir);
-            //
-            // Prune the current subdirectory.
-            //
-            return pruneDir(curSubdir)
-            .then(() => {
-                //
-                // If the subdirectory is now empty, delete it.
-                //
-                return subdir.isEmpty();
-            })
-            .then((dirIsEmpty) => {
-                if (dirIsEmpty) {
-                    return subdir.delete();
-                }
-            });
-        });
-
-        return Promise.all(promises)
-        .then(() => {
-        });
-    });
-}
-
-
-/**
- * Recursively removes empty subdirectories from within the specified directory.
- * @param dirPath - The directory to prune
- */
-export function pruneDirSync(dirPath: string): void {
-
-    const dir = new Directory(dirPath);
-    const contents = dir.contentsSync();
-    contents.subdirs.forEach((curSubdir) => {
-        const subdir = new Directory(curSubdir);
-
-        pruneDirSync(curSubdir);
-        //
-        // If the subdirectory is now empty, delete it.
-        //
-        if (subdir.isEmptySync())
-        {
-            subdir.deleteSync();
-        }
-    });
 }

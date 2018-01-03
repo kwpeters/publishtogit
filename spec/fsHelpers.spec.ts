@@ -1,5 +1,5 @@
 import * as path from "path";
-import {pruneDir, pruneDirSync, Directory, File} from "../src/fsHelpers";
+import {Directory, File} from "../src/fsHelpers";
 import {tmpDir, resetTmpFolder} from "./specHelpers";
 import {writeFileSync} from "fs";
 
@@ -545,7 +545,7 @@ describe("pruneDir()", function () {
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
 
-        return pruneDir(tmpDir.absPath())
+        return tmpDir.prune()
         .then(() => {
             expect(tmpDir.isEmptySync()).toBeTruthy();
         });
@@ -560,7 +560,7 @@ describe("pruneDir()", function () {
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
         writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
 
-        return pruneDir(tmpDir.absPath())
+        return tmpDir.prune()
         .then(() => {
             expect(tmpDir.isEmptySync()).toBeFalsy();
 
@@ -594,7 +594,7 @@ describe("pruneDirSync()", function () {
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
 
-        pruneDirSync(tmpDir.absPath());
+        tmpDir.pruneSync();
 
         expect(tmpDir.isEmptySync()).toBeTruthy();
     });
@@ -608,7 +608,7 @@ describe("pruneDirSync()", function () {
         new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
         writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
 
-        pruneDirSync(tmpDir.absPath());
+        tmpDir.pruneSync();
 
         expect(tmpDir.isEmptySync()).toBeFalsy();
 

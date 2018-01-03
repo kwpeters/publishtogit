@@ -1,11 +1,9 @@
 import * as path from "path";
 import * as fs from "fs";
 import {
-    ensureDirectoryExists, emptyDirectory, deleteFile,
-    deleteDirectory, readDir, pruneDir,
-    ensureDirectoryExistsSync, deleteFileSync,
-    pruneDirSync, readDirSync, emptyDirectorySync, deleteDirectorySync,
-    Directory, File
+    emptyDirectory, deleteFile, deleteDirectory, readDir, pruneDir,
+    deleteFileSync, pruneDirSync, readDirSync, emptyDirectorySync,
+    deleteDirectorySync, Directory, File
 } from "../src/fsHelpers";
 import {TMP_DIR_PATH, resetTmpFolder} from "./specHelpers";
 import {promisify2, sequence} from "../src/promiseHelpers";
@@ -97,8 +95,10 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a subdirectory", () => {
 
-                ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "foo"));
                 const tmpDir = new Directory(TMP_DIR_PATH);
+                const fooDir = new Directory(path.join(TMP_DIR_PATH, "foo"));
+
+                fooDir.ensureExistsSync();
 
                 return tmpDir.isEmpty()
                 .then((isEmpty) => {
@@ -135,9 +135,11 @@ describe("Directory", () => {
 
 
             it("will return false when a directory contains a subdirectory", () => {
-
-                ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "foo"));
                 const tmpDir = new Directory(TMP_DIR_PATH);
+                const fooDir = new Directory(path.join(TMP_DIR_PATH, "foo"));
+
+                fooDir.ensureExistsSync();
+
                 expect(tmpDir.isEmptySync()).toBeFalsy();
             });
 
@@ -151,39 +153,65 @@ describe("Directory", () => {
         });
 
 
-    });
+        describe("ensureExists()", () => {
 
 
-});
+            beforeEach(() => {
+                return resetTmpFolder();
+            });
 
 
-describe("ensureDirectoryExists()", () => {
+            it("will make sure all necessary directories exist when given an absolute path", () => {
+                const dirPath = path.join(TMP_DIR_PATH, "dir1", "dir2", "dir3");
+                const dir = new Directory(dirPath);
+
+                return dir.ensureExists()
+                .then(() => {
+                    expect(Directory.existsSync(dirPath)).toBeTruthy();
+                });
+            });
 
 
-    it("will make sure all necessary directories exist", () => {
-        const dirPath = path.join(TMP_DIR_PATH, "dir1", "dir2", "dir3");
+            it("will make sure all necessary directories exist when given a relative path", () => {
+                const dirPath = path.join("tmp", "dir1", "dir2", "dir3");
+                const dir = new Directory(dirPath);
 
-        return ensureDirectoryExists(dirPath)
-        .then(() => {
-            expect(Directory.existsSync(dirPath)).toBeTruthy();
+                return dir.ensureExists()
+                .then(() => {
+                    expect(Directory.existsSync(dirPath)).toBeTruthy();
+                });
+            });
+
+
         });
+
+
+        describe("ensureExistsSync()", () => {
+
+
+            it("will make sure all necessary directories exist when given an absolute path", () => {
+                const dirPath = path.join(TMP_DIR_PATH, "dir1", "dir2", "dir3");
+                const dir = new Directory(dirPath);
+                dir.ensureExistsSync();
+                expect(Directory.existsSync(dirPath)).toBeTruthy();
+            });
+
+
+            it("will make sure all necessary directories exist when given a relative path", () => {
+                const dirPath = path.join("tmp", "dir1", "dir2", "dir3");
+                const dir = new Directory(dirPath);
+                dir.ensureExistsSync();
+                expect(Directory.existsSync(dirPath)).toBeTruthy();
+            });
+
+
+        });
+
     });
 
 
 });
 
-
-describe("ensureDirectoryExistsSync()", () => {
-
-
-    it("will make sure all necessary directories exist", () => {
-        const dirPath = path.join(TMP_DIR_PATH, "dir1", "dir2", "dir3");
-        ensureDirectoryExistsSync(dirPath);
-        expect(Directory.existsSync(dirPath)).toBeTruthy();
-    });
-
-
-});
 
 
 describe("emptyDirectory()", () => {
@@ -256,13 +284,14 @@ describe("emptyDirectorySync()", () => {
 describe("deleteDirectory()", () => {
 
     it("will completely remove the directory and its contents", () => {
+        // TODO: Add a path property to Directory and File so the following path does not need to be repeated.
         const dirPath = path.join(TMP_DIR_PATH, "testDir");
         const filePath = path.join(dirPath, "a.txt");
         const subdirPath = path.join(dirPath, "subdir");
 
-        ensureDirectoryExistsSync(dirPath);
+        new Directory(dirPath).ensureExistsSync();
         writeFileSync(filePath, "A test file");
-        ensureDirectoryExistsSync(subdirPath);
+        new Directory(subdirPath).ensureExistsSync();
 
         return deleteDirectory(dirPath)
         .then(() => {
@@ -293,9 +322,9 @@ describe("deleteDirectorySync()", () => {
         const filePath = path.join(dirPath, "a.txt");
         const subdirPath = path.join(dirPath, "subdir");
 
-        ensureDirectoryExistsSync(dirPath);
+        new Directory(dirPath).ensureExistsSync();
         writeFileSync(filePath, "A test file");
-        ensureDirectoryExistsSync(subdirPath);
+        new Directory(subdirPath).ensureExistsSync();
 
         deleteDirectorySync(dirPath);
 
@@ -438,21 +467,14 @@ describe("readDir()", () => {
 
         const fileC = path.join(TMP_DIR_PATH, "c.txt");
 
+        new Directory(dirA).ensureExistsSync();
+        new Directory(dirB).ensureExistsSync();
 
-        Promise.all([
-            ensureDirectoryExists(dirA),
-            ensureDirectoryExists(dirB)
-        ])
-        .then(() => {
-            return Promise.all([
-                writeFileAsync(fileA, "This is file A"),
-                writeFileAsync(fileB, "This is file B"),
-                writeFileAsync(fileC, "This is file C")
-            ]);
-        })
-        .then(() => {
-            return readDir(TMP_DIR_PATH);
-        })
+        writeFileSync(fileA, "This is file A");
+        writeFileSync(fileB, "This is file B");
+        writeFileSync(fileC, "This is file C");
+
+        readDir(TMP_DIR_PATH)
         .then((result) => {
             expect(result.subdirs.length).toEqual(2);
             expect(result.files.length).toEqual(1);
@@ -483,8 +505,8 @@ describe("readDirSync()", () => {
 
         const fileC = path.join(TMP_DIR_PATH, "c.txt");
 
-        ensureDirectoryExistsSync(dirA);
-        ensureDirectoryExistsSync(dirB);
+        new Directory(dirA).ensureExistsSync();
+        new Directory(dirB).ensureExistsSync();
 
         writeFileSync(fileA, "file A");
         writeFileSync(fileB, "file B");
@@ -510,48 +532,33 @@ describe("pruneDir()", function () {
 
     it("will recursively remove all subdirectories", () => {
 
-        return sequence([
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")); }
-        ], undefined)
-        .then(() => {
-            return pruneDir(TMP_DIR_PATH);
-        })
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")).ensureExistsSync();
+
+        return pruneDir(TMP_DIR_PATH)
         .then(() => {
             const tmpDir = new Directory(TMP_DIR_PATH);
-            return tmpDir.isEmptySync();
-        })
-        .then((isEmpty) => {
-            expect(isEmpty).toBeTruthy();
+            expect(tmpDir.isEmptySync()).toBeTruthy();
         });
     });
 
 
     it("will not prune directories containing files", () => {
 
-        // TODO: Replace async calls with sync calls.
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")).ensureExistsSync();
+        writeFileSync(path.join(TMP_DIR_PATH, "dirA", "foo.txt"), "This is foo.txt");
 
-        return sequence([
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")); },
-            () => { return ensureDirectoryExists(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")); },
-            () => { return writeFileAsync(path.join(TMP_DIR_PATH, "dirA", "foo.txt"), "This is foo.txt"); }
-        ], undefined)
-        .then(() => {
-            return pruneDir(TMP_DIR_PATH);
-        })
+        return pruneDir(TMP_DIR_PATH)
         .then(() => {
             const tmpDir = new Directory(TMP_DIR_PATH);
-            return tmpDir.isEmpty();
-        })
-        .then((isEmpty) => {
-            expect(isEmpty).toBeFalsy();
-            return readDir(TMP_DIR_PATH);
-        })
-        .then((contents) => {
+            expect(tmpDir.isEmptySync()).toBeFalsy();
+
+            const contents = readDirSync(TMP_DIR_PATH);
             expect(contents.subdirs.length).toEqual(1);
             expect(contents.subdirs).toContain(path.join(TMP_DIR_PATH, "dirA"));
             expect(contents.files.length).toEqual(0);
@@ -576,10 +583,10 @@ describe("pruneDirSync()", function () {
 
     it("will recursiveely remove all subdirectories", () => {
 
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4"));
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")).ensureExistsSync();
 
         pruneDirSync(TMP_DIR_PATH);
 
@@ -590,10 +597,10 @@ describe("pruneDirSync()", function () {
 
     it("will not prune directories containing files", () => {
 
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3"));
-        ensureDirectoryExistsSync(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4"));
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBa", "dirC")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dirA", "dirBb", "dirE")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2a", "dir3")).ensureExistsSync();
+        new Directory(path.join(TMP_DIR_PATH, "dir1", "dir2b", "dir4")).ensureExistsSync();
         writeFileSync(path.join(TMP_DIR_PATH, "dirA", "foo.txt"), "This is foo.txt");
 
         pruneDirSync(TMP_DIR_PATH);

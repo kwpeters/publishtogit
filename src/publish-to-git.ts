@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as os from "os";
 import {spawn} from "./spawn";
-import {deleteDirectory, deleteFile, ensureDirectoryExists} from "./fsHelpers";
+import {deleteDirectory, deleteFile, Directory} from "./fsHelpers";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 
@@ -24,12 +24,12 @@ function main(): void
         return;
     }
 
-    const tmpDir = path.join(os.homedir(), ".publish-to-git", "tmp");
-    const publishRepoDir = path.join(tmpDir, gitUrlToProjectName(publishConfig.publishRepository));
+    const tmpDir = new Directory(path.join(os.homedir(), ".publish-to-git", "tmp"));
+    const publishRepoDir = path.join(tmpDir.absPath(), gitUrlToProjectName(publishConfig.publishRepository));
 
     let publishRepo: GitRepo;
 
-    ensureDirectoryExists(tmpDir)
+    tmpDir.ensureExists()
     .then(() => {
         //
         // Delete the temporary publishing directory if it already exists.
@@ -40,7 +40,7 @@ function main(): void
         //
         // Clone the publishing repo.
         //
-        return GitRepo.clone(publishConfig.publishRepository, tmpDir);
+        return GitRepo.clone(publishConfig.publishRepository, tmpDir.absPath());
     })
     .then((repo) => {
         publishRepo = repo;

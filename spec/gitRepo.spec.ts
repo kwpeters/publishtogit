@@ -6,22 +6,19 @@ import {Directory, File} from "../src/fsHelpers";
 
 describe("GitUrlToProjectName", () => {
 
-    it("will return undefined when given an illegal Git URL", (done) => {
+    it("will return undefined when given an illegal Git URL", () => {
 
-        const shouldThrow = function shouldThrow() {
+        expect(() => {
             // Missing .git at the end of the URL.
             gitUrlToProjectName("https://github.com/kwpeters/publish-to-git");
-        };
-
-        expect(shouldThrow).toThrowError(/invalid Git URL/);
-        done();
+        }).toThrowError(/invalid Git URL/);
     });
 
 
-    it("will return the proper name when given a valid URL", (done) => {
+    it("will return the proper name when given a valid URL", () => {
         expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git.git")).toEqual("publish-to-git");
-        done();
     });
+
 
 });
 
@@ -30,6 +27,7 @@ describe("GitRepo", () => {
 
 
     describe("static", () => {
+
 
         describe("create()", () => {
 

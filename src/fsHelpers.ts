@@ -23,6 +23,7 @@ export class Directory
     private _dirPath: string;
     //endregion
 
+
     public static exists(dirPath: string): Promise<boolean>
     {
         return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {

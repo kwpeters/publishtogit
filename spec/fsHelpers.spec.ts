@@ -530,7 +530,7 @@ describe("readDirSync()", () => {
 });
 
 
-describe("pruneDir()", function () {
+describe("pruneDir()", () => {
 
 
     beforeEach(() => {
@@ -579,7 +579,7 @@ describe("pruneDir()", function () {
 });
 
 
-describe("pruneDirSync()", function () {
+describe("pruneDirSync()", () => {
 
 
     beforeEach(() => {

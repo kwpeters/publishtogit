@@ -1,6 +1,6 @@
 import * as path from "path";
 import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
-import {resetTmpFolder, TMP_DIR_PATH} from "./specHelpers";
+import {resetTmpFolder, tmpDir} from "./specHelpers";
 import {Directory, File} from "../src/fsHelpers";
 
 
@@ -57,21 +57,20 @@ describe("GitRepo", () => {
         describe("clone()", () => {
 
 
-            beforeEach((done) => {
-                resetTmpFolder()
-                .then(done);
+            beforeEach(() => {
+                resetTmpFolder();
             });
 
 
             it("will clone the specified repository in the specified directory", () => {
 
-                return GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", TMP_DIR_PATH)
+                return GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", tmpDir.absPath())
                 .then((repo: GitRepo) => {
 
                     expect(repo).toBeTruthy();
 
-                    expect(Directory.existsSync(path.join(TMP_DIR_PATH, "publish-to-git"))).toBeTruthy();
-                    expect(File.existsSync(path.join(TMP_DIR_PATH, "publish-to-git", "package.json"))).toBeTruthy();
+                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "publish-to-git"))).toBeTruthy();
+                    expect(File.existsSync(path.join(tmpDir.absPath(), "publish-to-git", "package.json"))).toBeTruthy();
                 });
             });
 
@@ -86,15 +85,14 @@ describe("GitRepo", () => {
 
         describe("files()", () => {
 
-            beforeEach((done) => {
-                resetTmpFolder()
-                .then(done);
+            beforeEach(() => {
+                resetTmpFolder();
             });
 
 
             it("will return the files under version control", (done) => {
 
-                GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", TMP_DIR_PATH)
+                GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", tmpDir.absPath())
                 .then((repo) => {
                     return repo.files();
                 })

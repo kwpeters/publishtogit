@@ -1,10 +1,10 @@
 import * as path from "path";
-import {emptyDirectory} from "../src/fsHelpers";
+import {Directory} from "../src/fsHelpers";
 
 
-export const TMP_DIR_PATH = path.join(__dirname, "..", "tmp");
+export const tmpDir = new Directory(path.join(__dirname, "..", "tmp"));
 
 
-export function resetTmpFolder(): Promise<void> {
-    return emptyDirectory(TMP_DIR_PATH);
+export function resetTmpFolder(): void {
+    return tmpDir.emptySync();
 }

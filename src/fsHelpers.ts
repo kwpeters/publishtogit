@@ -202,22 +202,22 @@ export class Directory
             }
         });
     }
-}
 
 
-export function emptyDirectory(dirPath: string): Promise<void> {
-    const dir = new Directory(dirPath);
-    return deleteDirectory(dirPath)
-    .then(() => {
-        return dir.ensureExists();
-    });
-}
+    public empty(): Promise<void>
+    {
+        return deleteDirectory(this._dirPath)
+        .then(() => {
+            return this.ensureExists();
+        });
+    }
 
 
-export function emptyDirectorySync(dirPath: string): void {
-    const dir = new Directory(dirPath);
-    deleteDirectorySync(dirPath);
-    dir.ensureExistsSync();
+    public emptySync(): void
+    {
+        deleteDirectorySync(this._dirPath);
+        this.ensureExistsSync();
+    }
 }
 
 

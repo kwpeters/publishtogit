@@ -1,20 +1,19 @@
 import * as path from "path";
 import * as fs from "fs";
 import {spawn} from "../src/spawn";
-import {TMP_DIR_PATH, resetTmpFolder} from "./specHelpers";
+import {tmpDir, resetTmpFolder} from "./specHelpers";
 
 
 describe("spawn", () => {
 
-    beforeEach((done) => {
-        resetTmpFolder()
-        .then(done);
+    beforeEach(() => {
+        resetTmpFolder();
     });
 
 
     it("will run the specified command", (done) => {
-        const testFilePath = path.join(TMP_DIR_PATH, "foo.txt");
-        spawn("touch", ["foo.txt"], TMP_DIR_PATH)
+        const testFilePath = path.join(tmpDir.absPath(), "foo.txt");
+        spawn("touch", ["foo.txt"], tmpDir.absPath())
         .then(() => {
             const stats = fs.statSync(testFilePath);
             expect(stats.isFile()).toBeTruthy();
@@ -24,9 +23,9 @@ describe("spawn", () => {
 
 
     it("will resolve with the stdout text", (done) => {
-        spawn("touch", ["foo.txt"], TMP_DIR_PATH)
+        spawn("touch", ["foo.txt"], tmpDir.absPath())
         .then(() => {
-            return spawn("ls", [], TMP_DIR_PATH);
+            return spawn("ls", [], tmpDir.absPath());
         })
         .then((output) => {
             expect(output).toContain("foo.txt");
@@ -97,7 +96,7 @@ describe("spawn", () => {
 
 
     it("provides the exit code and stderr when the command fails", (done) => {
-        const nonExistantFilePath = path.join(TMP_DIR_PATH, "xyzzy.txt");
+        const nonExistantFilePath = path.join(tmpDir.absPath(), "xyzzy.txt");
         spawn("cat", [nonExistantFilePath], ".")
         .catch((err) => {
             expect(err).toBeTruthy();

@@ -10,6 +10,13 @@ const rmdirAsync = promisify1<void, string>(fs.rmdir);
 const statAsync  = promisify1<fs.Stats, string>(fs.stat);
 
 
+// TODO: Change the following arrays to Directory and File instances.
+interface IDirectoryContents {
+    subdirs: Array<string>;
+    files:   Array<string>;
+}
+
+
 export class Directory
 {
     //region Data Members
@@ -285,6 +292,72 @@ export class Directory
         // directory itself.
         fs.rmdirSync(this._dirPath);
     }
+
+
+    /**
+     * Reads the contents of this directory.
+     * @return The contents of the directory, separated into a list of files and a
+     * list of subdirectories.  All paths returned are absolute paths.
+     */
+    public contents(): Promise<IDirectoryContents>
+    {
+        const thisAbsPath = this.absPath();
+
+        return readdirAsync(this._dirPath)
+        .then((fsEntries) => {
+            const absPaths = fsEntries.map((curEntry) => {
+                return path.join(thisAbsPath, curEntry);
+            });
+
+            const contents: IDirectoryContents = {subdirs: [], files: []};
+
+            const promises = absPaths.map((curAbsPath) => {
+                return statAsync(curAbsPath)
+                .then((stats) => {
+                    if (stats.isFile()) {
+                        contents.files.push(curAbsPath);
+                    } else if (stats.isDirectory()) {
+                        contents.subdirs.push(curAbsPath);
+                    }
+                });
+            });
+
+            return Promise.all(promises)
+            .then(() => {
+                return contents;
+            });
+        });
+    }
+
+
+    /**
+     * Reads the contents of this directory.
+     * @return The contents of the directory, separated into a list of files and a
+     * list of subdirectories.  All paths returned are absolute paths.
+     */
+    public contentsSync(): IDirectoryContents
+    {
+        const thisAbsPath = this.absPath();
+        let fsEntries = fs.readdirSync(this._dirPath);
+        fsEntries = fsEntries.map((curFsEntry) => {
+            return path.join(thisAbsPath, curFsEntry);
+        });
+
+        const contents: IDirectoryContents = {subdirs: [], files: []};
+        fsEntries.forEach((curFsEntry) => {
+            const stats = fs.statSync(curFsEntry);
+            if (stats.isFile())
+            {
+                contents.files.push(curFsEntry);
+            }
+            else if (stats.isDirectory())
+            {
+                contents.subdirs.push(curFsEntry);
+            }
+        });
+
+        return contents;
+    }
 }
 
 
@@ -371,76 +444,6 @@ export class File
 }
 
 
-interface IDirectoryContents {
-    subdirs: Array<string>;
-    files:   Array<string>;
-}
-
-
-/**
- * Reads the contents of the specified directory.
- * @param dirPath - The directory to read
- * @return The contents of the directory, separated into a list of files and a
- * list of subdirectories.  All paths returned are absolute paths.
- */
-export function readDir(dirPath: string): Promise<IDirectoryContents> {
-
-    return readdirAsync(dirPath)
-    .then((fsEntries) => {
-        const absPaths = fsEntries.map((curEntry) => {
-            return path.resolve(path.join(dirPath, curEntry));
-        });
-
-        const contents: IDirectoryContents = {subdirs: [], files: []};
-
-        const promises = absPaths.map((curAbsPath) => {
-            return statAsync(curAbsPath)
-            .then((stats) => {
-                if (stats.isFile()) {
-                    contents.files.push(curAbsPath);
-                } else if (stats.isDirectory()) {
-                    contents.subdirs.push(curAbsPath);
-                }
-            });
-        });
-
-        return Promise.all(promises)
-        .then(() => {
-            return contents;
-        });
-    });
-}
-
-
-/**
- * Reads the contents of the specified directory.
- * @param dirPath - The directory to read
- * @return The contents of the directory, separated into a list of files and a
- * list of subdirectories.  All paths returned are absolute paths.
- */
-export function readDirSync(dirPath: string): IDirectoryContents {
-
-    let fsEntries = fs.readdirSync(dirPath);
-    fsEntries = fsEntries.map((curFsEntry) => {
-        return path.resolve(path.join(dirPath, curFsEntry));
-    });
-
-    const contents: IDirectoryContents = {subdirs: [], files: []};
-    fsEntries.forEach((curFsEntry) => {
-        const stats = fs.statSync(curFsEntry);
-        if (stats.isFile())
-        {
-            contents.files.push(curFsEntry);
-        }
-        else if (stats.isDirectory())
-        {
-            contents.subdirs.push(curFsEntry);
-        }
-    });
-
-    return contents;
-}
-
 
 /**
  * Recursively removes empty subdirectories from within the specified directory.
@@ -448,8 +451,10 @@ export function readDirSync(dirPath: string): IDirectoryContents {
  * @return A Promise that is resolved when the directory has been pruned.
  */
 export function pruneDir(dirPath: string): Promise<void> {
+
+    const dir = new Directory(dirPath);
     
-    return readDir(dirPath)
+    return dir.contents()
     .then((contents) => {
         const promises = contents.subdirs.map((curSubdir) => {
             const subdir = new Directory(curSubdir);
@@ -483,7 +488,8 @@ export function pruneDir(dirPath: string): Promise<void> {
  */
 export function pruneDirSync(dirPath: string): void {
 
-    const contents = readDirSync(dirPath);
+    const dir = new Directory(dirPath);
+    const contents = dir.contentsSync();
     contents.subdirs.forEach((curSubdir) => {
         const subdir = new Directory(curSubdir);
 

@@ -5,7 +5,6 @@ import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 
 
-
 function main(): void
 {
     const srcDir = process.argv[2];

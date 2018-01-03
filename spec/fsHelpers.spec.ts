@@ -1,9 +1,5 @@
 import * as path from "path";
-import {
-    readDir, pruneDir,
-    pruneDirSync, readDirSync,
-    Directory, File
-} from "../src/fsHelpers";
+import {pruneDir, pruneDirSync, Directory, File} from "../src/fsHelpers";
 import {tmpDir, resetTmpFolder} from "./specHelpers";
 import {writeFileSync} from "fs";
 
@@ -486,7 +482,7 @@ describe("readDir()", () => {
         writeFileSync(fileB, "This is file B");
         writeFileSync(fileC, "This is file C");
 
-        readDir(tmpDir.absPath())
+        tmpDir.contents()
         .then((result) => {
             expect(result.subdirs.length).toEqual(2);
             expect(result.files.length).toEqual(1);
@@ -524,7 +520,7 @@ describe("readDirSync()", () => {
         writeFileSync(fileB.absPath(), "file B");
         writeFileSync(fileC.absPath(), "file c");
 
-        const contents = readDirSync(tmpDir.absPath());
+        const contents = tmpDir.contentsSync();
 
         expect(contents.subdirs.length).toEqual(2);
         expect(contents.files.length).toEqual(1);
@@ -568,7 +564,7 @@ describe("pruneDir()", function () {
         .then(() => {
             expect(tmpDir.isEmptySync()).toBeFalsy();
 
-            const contents = readDirSync(tmpDir.absPath());
+            const contents = tmpDir.contentsSync();
             expect(contents.subdirs.length).toEqual(1);
             expect(contents.subdirs).toContain(path.join(tmpDir.absPath(), "dirA"));
             expect(contents.files.length).toEqual(0);
@@ -616,7 +612,7 @@ describe("pruneDirSync()", function () {
 
         expect(tmpDir.isEmptySync()).toBeFalsy();
 
-        const contents = readDirSync(tmpDir.absPath());
+        const contents = tmpDir.contentsSync();
 
         expect(contents.subdirs.length).toEqual(1);
         expect(contents.subdirs).toContain(path.join(tmpDir.absPath(), "dirA"));

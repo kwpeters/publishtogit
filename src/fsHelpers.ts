@@ -10,43 +10,104 @@ const rmdirAsync = promisify1<void, string>(fs.rmdir);
 const statAsync  = promisify1<fs.Stats, string>(fs.stat);
 
 
-export function isDirectory(path: string): Promise<boolean> {
-    return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
-        fs.stat(path, (err: any, stats: fs.Stats) => {
-            if (err) {
-                resolve(false);
-            } else {
-                resolve(stats.isDirectory());
-            }
+export class Directory
+{
+    //region Data Members
+    private _dirAbsPath: string;
+    //endregion
+
+    public static exists(dirPath: string): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+            fs.stat(dirPath, (err: any, stats: fs.Stats) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(stats.isDirectory());
+                }
+            });
         });
-    });
+    }
+
+
+    public static existsSync(dirPath: string): boolean
+    {
+        try
+        {
+            const stats = fs.statSync(dirPath);
+            return stats.isDirectory();
+        }
+        catch (err)
+        {
+            if (err.code === "ENOENT")
+            {
+                return false;
+            }
+            else
+            {
+                throw err;
+            }
+        }
+    }
+
+
+    public constructor(dirPath: string)
+    {
+        this._dirAbsPath = path.resolve(dirPath);
+    }
+
+
+    public isEmpty(): Promise<boolean>
+    {
+        return readdirAsync(this._dirAbsPath)
+        .then((fsEntries) => {
+            return fsEntries.length === 0;
+        });
+    }
+
+
+    public isEmptySync(): boolean
+    {
+        const fsEntries = fs.readdirSync(this._dirAbsPath);
+        return fsEntries.length === 0;
+    }
 }
 
 
-export function ensureDirectoryExists(dirPath: string): Promise<boolean> {
+export function ensureDirectoryExists(dirPath: string): Promise<boolean>
+{
 
-    return isDirectory(dirPath)
-    .then((isDirectory: boolean) => {
-        if (isDirectory) {
+    return Directory.exists(dirPath)
+    .then((isDirectory: boolean) =>
+    {
+        if (isDirectory)
+        {
             return true;
-        } else {
+        } else
+        {
             const parts = dirPath.split(path.sep);
 
             // Create an array of successively longer paths, each one adding a
             // new directory onto the end.
-            const dirsToCreate = parts.reduce((acc: Array<string>, curPart: string): Array<string> => {
-                if (acc.length === 0) {
-                    if (curPart.length === 0) {
+            const dirsToCreate = parts.reduce((acc: Array<string>,
+                curPart: string): Array<string> =>
+            {
+                if (acc.length === 0)
+                {
+                    if (curPart.length === 0)
+                    {
                         // The first item is an empty string.  The path must
                         // have started with the directory separator character
                         // (an absolute path was specified).
                         acc.push(path.sep);
-                    } else {
+                    } else
+                    {
                         // The first item contains text.  A relative path must
                         // have been specified.
                         acc.push(curPart);
                     }
-                } else {
+                } else
+                {
                     const last = acc[acc.length - 1];
                     acc.push(path.join(last, curPart));
                 }
@@ -54,18 +115,23 @@ export function ensureDirectoryExists(dirPath: string): Promise<boolean> {
             }, []);
 
             // Don't attempt to create the root of the filesystem.
-            if ((dirsToCreate.length > 0) && (dirsToCreate[0] === path.sep)) {
+            if ((dirsToCreate.length > 0) && (dirsToCreate[0] === path.sep))
+            {
                 dirsToCreate.shift();
             }
 
             // Map each successively longer path to a function that will create
             // it.
-            const createFuncs = dirsToCreate.map((dirToCreate: string) => {
-                return (): Promise<void> => {
+            const createFuncs = dirsToCreate.map((dirToCreate: string) =>
+            {
+                return (): Promise<void> =>
+                {
                     return mkdirAsync(dirToCreate)
-                    .catch((err) => {
+                    .catch((err) =>
+                    {
                         // If the directory already exists, just keep going.
-                        if (err.code !== "EEXIST") {
+                        if (err.code !== "EEXIST")
+                        {
                             throw err;
                         }
                     });
@@ -76,7 +142,55 @@ export function ensureDirectoryExists(dirPath: string): Promise<boolean> {
             return sequence(createFuncs, undefined);
         }
     });
+}
 
+
+export function ensureDirectoryExistsSync(dirPath: string): void {
+
+    if (Directory.existsSync(dirPath))
+    {
+        return;
+    }
+
+    const parts = dirPath.split(path.sep);
+
+    // Create an array of successively longer paths, each one adding a
+    // new directory onto the end.
+    const dirsToCreate = parts.reduce((acc: Array<string>, curPart: string): Array<string> => {
+            if (acc.length === 0) {
+                if (curPart.length === 0) {
+                    // The first item is an empty string.  The path must
+                    // have started with the directory separator character
+                    // (an absolute path was specified).
+                    acc.push(path.sep);
+                } else {
+                    // The first item contains text.  A relative path must
+                    // have been specified.
+                    acc.push(curPart);
+                }
+            } else {
+                const last = acc[acc.length - 1];
+                acc.push(path.join(last, curPart));
+            }
+            return acc;
+        }, []);
+
+    // Don't attempt to create the root of the filesystem.
+    if ((dirsToCreate.length > 0) && (dirsToCreate[0] === path.sep)) {
+        dirsToCreate.shift();
+    }
+
+    dirsToCreate.forEach((curDir) => {
+        try {
+            fs.mkdirSync(curDir);
+        }
+        catch (err) {
+            // If the directory already exists, just keep going.
+            if (err.code !== "EEXIST") {
+                throw err;
+            }
+        }
+    });
 }
 
 
@@ -90,9 +204,15 @@ export function emptyDirectory(dirPath: string): Promise<void> {
 }
 
 
+export function emptyDirectorySync(dirPath: string): void {
+    deleteDirectorySync(dirPath);
+    ensureDirectoryExistsSync(dirPath);
+}
+
+
 export function deleteDirectory(dirPath: string): Promise<void> {
 
-    return isDirectory(dirPath)
+    return Directory.exists(dirPath)
     .then((isDirectory: boolean) => {
         if (!isDirectory){
             // The specified directory does not exist.  Do nothing.
@@ -125,21 +245,85 @@ export function deleteDirectory(dirPath: string): Promise<void> {
 }
 
 
-export function isFile(path: string): Promise<boolean> {
-    return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
-        fs.stat(path, (err: any, stats: fs.Stats) => {
-            if (err) {
-                resolve(false);
-            } else {
-                resolve(stats.isFile());
-            }
-        });
+export function deleteDirectorySync(dirPath: string): void {
+
+    if (!Directory.existsSync(dirPath))
+    {
+        // The directory does not exist.  Do nothing.
+        return;
+    }
+
+    // First, delete the contents of the specified directory.
+    let fsItems: Array<string> = fs.readdirSync(dirPath);
+    fsItems = fsItems.map((curFsItem) => {
+        return path.join(dirPath, curFsItem);
     });
+
+    fsItems.forEach((curFsItem) => {
+        const stats = fs.statSync(curFsItem);
+        if (stats.isDirectory()) {
+            deleteDirectorySync(curFsItem);
+        }
+        else {
+            fs.unlinkSync(curFsItem);
+        }
+    });
+
+    // Now that all of the items in the directory have been deleted, delete the
+    // directory itself.
+    fs.rmdirSync(dirPath);
+}
+
+
+export class File
+{
+    //region Data Members
+    private _filePath: string;
+    //endregion
+
+
+    public static exists(filePath: string): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+            fs.stat(filePath, (err: any, stats: fs.Stats) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(stats.isFile());
+                }
+            });
+        });
+    }
+
+
+    public static existsSync(filePath: string): boolean
+    {
+        try {
+            const stats = fs.statSync(filePath);
+            return stats.isFile();
+        }
+        catch (err) {
+            if (err.code === "ENOENT")
+            {
+                return false;
+            }
+            else
+            {
+                throw err;
+            }
+        }
+    }
+
+
+    private constructor(filePath: string)
+    {
+        this._filePath = filePath;
+    }
 }
 
 
 export function deleteFile(filePath: string): Promise<void> {
-    return isFile(filePath)
+    return File.exists(filePath)
     .then((isFile: boolean) => {
         if (!isFile) {
             return Promise.resolve();
@@ -147,6 +331,16 @@ export function deleteFile(filePath: string): Promise<void> {
             return unlinkAsync(filePath);
         }
     });
+}
+
+
+export function deleteFileSync(filePath: string): void {
+
+    if (!File.existsSync(filePath)) {
+        return;
+    }
+
+    fs.unlinkSync(filePath);
 }
 
 
@@ -160,7 +354,7 @@ interface IDirectoryContents {
  * Reads the contents of the specified directory.
  * @param dirPath - The directory to read
  * @return The contents of the directory, separated into a list of files and a
- * lit of subdirectories.  All paths returned are absolute paths.
+ * list of subdirectories.  All paths returned are absolute paths.
  */
 export function readDir(dirPath: string): Promise<IDirectoryContents> {
 
@@ -191,11 +385,33 @@ export function readDir(dirPath: string): Promise<IDirectoryContents> {
 }
 
 
-export function dirIsEmpty(dirPath: string): Promise<boolean> {
-    return readdirAsync(dirPath)
-    .then((fsEntries) => {
-        return fsEntries.length === 0;
+/**
+ * Reads the contents of the specified directory.
+ * @param dirPath - The directory to read
+ * @return The contents of the directory, separated into a list of files and a
+ * list of subdirectories.  All paths returned are absolute paths.
+ */
+export function readDirSync(dirPath: string): IDirectoryContents {
+
+    let fsEntries = fs.readdirSync(dirPath);
+    fsEntries = fsEntries.map((curFsEntry) => {
+        return path.resolve(path.join(dirPath, curFsEntry));
     });
+
+    const contents: IDirectoryContents = {subdirs: [], files: []};
+    fsEntries.forEach((curFsEntry) => {
+        const stats = fs.statSync(curFsEntry);
+        if (stats.isFile())
+        {
+            contents.files.push(curFsEntry);
+        }
+        else if (stats.isDirectory())
+        {
+            contents.subdirs.push(curFsEntry);
+        }
+    });
+
+    return contents;
 }
 
 
@@ -209,19 +425,20 @@ export function pruneDir(dirPath: string): Promise<void> {
     return readDir(dirPath)
     .then((contents) => {
         const promises = contents.subdirs.map((curSubdir) => {
-            
+            const subdir = new Directory(curSubdir);
             //
-            // Prune the subdirectory.
+            // Prune the current subdirectory.
             //
             return pruneDir(curSubdir)
             .then(() => {
                 //
                 // If the subdirectory is now empty, delete it.
                 //
-                return dirIsEmpty(curSubdir);
+                return subdir.isEmpty();
             })
             .then((dirIsEmpty) => {
                 if (dirIsEmpty) {
+                    // TODO: Move deleteDirectory() to Directory.
                     return deleteDirectory(curSubdir);
                 }
             })
@@ -231,5 +448,27 @@ export function pruneDir(dirPath: string): Promise<void> {
         return Promise.all(promises)
         .then(() => {
         });
+    });
+}
+
+
+/**
+ * Recursively removes empty subdirectories from within the specified directory.
+ * @param dirPath - The directory to prune
+ */
+export function pruneDirSync(dirPath: string): void {
+
+    const contents = readDirSync(dirPath);
+    contents.subdirs.forEach((curSubdir) => {
+        const subdir = new Directory(curSubdir);
+
+        pruneDirSync(curSubdir);
+        //
+        // If the subdirectory is now empty, delete it.
+        //
+        if (subdir.isEmptySync())
+        {
+            deleteDirectorySync(curSubdir);
+        }
     });
 }

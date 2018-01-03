@@ -1,7 +1,7 @@
 import * as path from "path";
 import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
 import {resetTmpFolder, TMP_DIR_PATH} from "./specHelpers";
-import {isDirectory, isFile} from "../src/fsHelpers";
+import {Directory, File} from "../src/fsHelpers";
 
 
 describe("GitUrlToProjectName", () => {
@@ -56,28 +56,22 @@ describe("GitRepo", () => {
 
         describe("clone()", () => {
 
+
             beforeEach((done) => {
                 resetTmpFolder()
                 .then(done);
             });
 
-            it("will clone the specified repository in the specified directory", (done) => {
 
-                GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", TMP_DIR_PATH)
+            it("will clone the specified repository in the specified directory", () => {
+
+                return GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", TMP_DIR_PATH)
                 .then((repo: GitRepo) => {
 
                     expect(repo).toBeTruthy();
 
-                    Promise.all([
-                        isDirectory(path.join(TMP_DIR_PATH, "publish-to-git")),
-                        isFile(path.join(TMP_DIR_PATH, "publish-to-git", "package.json"))
-                    ])
-                    .then((results) => {
-                        const [isDir, isFile] = results;
-                        expect(isDir).toBeTruthy();
-                        expect(isFile).toBeTruthy();
-                        done();
-                    });
+                    expect(Directory.existsSync(path.join(TMP_DIR_PATH, "publish-to-git"))).toBeTruthy();
+                    expect(File.existsSync(path.join(TMP_DIR_PATH, "publish-to-git", "package.json"))).toBeTruthy();
                 });
             });
 

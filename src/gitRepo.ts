@@ -1,4 +1,4 @@
-import {isDirectory} from "./fsHelpers";
+import {Directory} from "./fsHelpers";
 import * as path from "path";
 import {spawn} from "./spawn";
 import {readConfig, IPackageJson} from "./configHelpers";
@@ -37,8 +37,8 @@ export class GitRepo
     public static create(dirPath: string): Promise<GitRepo>
     {
         return Promise.all([
-            isDirectory(dirPath),                    // Directory specified by the user must exist
-            isDirectory(path.join(dirPath, ".git"))  // The directory must contain a .git folder
+            Directory.exists(dirPath),                    // Directory specified by the user must exist
+            Directory.exists(path.join(dirPath, ".git"))  // The directory must contain a .git folder
         ])
         .then((results) => {
             if (!results[0] || !results[1])
@@ -66,7 +66,7 @@ export class GitRepo
 
         const repoDir = path.join(parentDir, projName);
 
-        return isDirectory(parentDir)
+        return Directory.exists(parentDir)
         .then((isDirectory) => {
             if (!isDirectory)
             {

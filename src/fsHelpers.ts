@@ -10,10 +10,9 @@ const rmdirAsync = promisify1<void, string>(fs.rmdir);
 const statAsync  = promisify1<fs.Stats, string>(fs.stat);
 
 
-// TODO: Change the following arrays to Directory and File instances.
 interface IDirectoryContents {
-    subdirs: Array<string>;
-    files:   Array<string>;
+    subdirs: Array<Directory>;
+    files:   Array<File>;
 }
 
 
@@ -316,9 +315,9 @@ export class Directory
                 return statAsync(curAbsPath)
                 .then((stats) => {
                     if (stats.isFile()) {
-                        contents.files.push(curAbsPath);
+                        contents.files.push(new File(curAbsPath));
                     } else if (stats.isDirectory()) {
-                        contents.subdirs.push(curAbsPath);
+                        contents.subdirs.push(new Directory(curAbsPath));
                     }
                 });
             });
@@ -349,11 +348,11 @@ export class Directory
             const stats = fs.statSync(curFsEntry);
             if (stats.isFile())
             {
-                contents.files.push(curFsEntry);
+                contents.files.push(new File(curFsEntry));
             }
             else if (stats.isDirectory())
             {
-                contents.subdirs.push(curFsEntry);
+                contents.subdirs.push(new Directory(curFsEntry));
             }
         });
 
@@ -370,20 +369,19 @@ export class Directory
         return this.contents()
         .then((contents) => {
             const promises = contents.subdirs.map((curSubdir) => {
-                const subdir = new Directory(curSubdir);
                 //
                 // Prune the current subdirectory.
                 //
-                return subdir.prune()
+                return curSubdir.prune()
                 .then(() => {
                     //
                     // If the subdirectory is now empty, delete it.
                     //
-                    return subdir.isEmpty();
+                    return curSubdir.isEmpty();
                 })
                 .then((dirIsEmpty) => {
                     if (dirIsEmpty) {
-                        return subdir.delete();
+                        return curSubdir.delete();
                     }
                 });
             });
@@ -402,15 +400,15 @@ export class Directory
     {
         const contents = this.contentsSync();
         contents.subdirs.forEach((curSubdir) => {
-            const subdir = new Directory(curSubdir);
-            subdir.pruneSync();
+
+            curSubdir.pruneSync();
 
             //
             // If the subdirectory is now empty, delete it.
             //
-            if (subdir.isEmptySync())
+            if (curSubdir.isEmptySync())
             {
-                subdir.deleteSync();
+                curSubdir.deleteSync();
             }
         });
     }

@@ -566,7 +566,7 @@ describe("pruneDir()", () => {
 
             const contents = tmpDir.contentsSync();
             expect(contents.subdirs.length).toEqual(1);
-            expect(contents.subdirs).toContain(path.join(tmpDir.absPath(), "dirA"));
+            expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
             expect(contents.files.length).toEqual(0);
 
             expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
@@ -615,7 +615,7 @@ describe("pruneDirSync()", () => {
         const contents = tmpDir.contentsSync();
 
         expect(contents.subdirs.length).toEqual(1);
-        expect(contents.subdirs).toContain(path.join(tmpDir.absPath(), "dirA"));
+        expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
         expect(contents.files.length).toEqual(0);
 
         expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();

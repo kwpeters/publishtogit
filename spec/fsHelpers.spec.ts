@@ -1,16 +1,11 @@
 import * as path from "path";
-import * as fs from "fs";
 import {
-    deleteFile, deleteDirectory, readDir, pruneDir,
-    deleteFileSync, pruneDirSync, readDirSync,
-    deleteDirectorySync, Directory, File
+    readDir, pruneDir,
+    pruneDirSync, readDirSync,
+    Directory, File
 } from "../src/fsHelpers";
 import {tmpDir, resetTmpFolder} from "./specHelpers";
-import {promisify2, sequence} from "../src/promiseHelpers";
 import {writeFileSync} from "fs";
-
-
-const writeFileAsync = promisify2<void, string, string>(fs.writeFile);
 
 
 describe("Directory", () => {
@@ -269,61 +264,69 @@ describe("Directory", () => {
 
 
         });
-    });
 
 
-});
+        describe("delete()", () => {
 
 
+            it("will completely remove the directory and its contents", () => {
 
-describe("deleteDirectory()", () => {
+                const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
+                const testFile = new File(path.join(testDir.absPath(), "file.txt"));
+                const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
 
-    it("will completely remove the directory and its contents", () => {
+                testDir.ensureExistsSync();
+                writeFileSync(testFile.absPath(), "A test file");
+                testSubdir.ensureExistsSync();
 
-        const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
-        const testFile = new File(path.join(testDir.absPath(), "file.txt"));
-        const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
+                return testDir.delete()
+                .then(() => {
+                    expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
+                });
+            });
 
-        testDir.ensureExistsSync();
-        writeFileSync(testFile.absPath(), "A test file");
-        testSubdir.ensureExistsSync();
 
-        return deleteDirectory(testDir.absPath())
-        .then(() => {
-            expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
+            it("will resolve when the specified directory does not exist", (done) => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "xyzzy"));
+                dir.delete()
+                .then(() => {
+                    done();
+                });
+
+            });
+
+
         });
-    });
 
 
-    it("will resolve when the specified directory does not exist", (done) => {
-        const dirPath = path.join(tmpDir.absPath(), "xyzzy");
+        describe("deleteSync()", () => {
 
-        deleteDirectory(dirPath)
-        .then(() => {
-            done();
+
+            it("will completely remove the directory and its contents", () => {
+
+                const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
+                const testFile = new File(path.join(testDir.absPath(), "file.txt"));
+                const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
+
+                testDir.ensureExistsSync();
+                writeFileSync(testFile.absPath(), "A test file");    // TODO: Make a method out of this
+                testSubdir.ensureExistsSync();
+
+                testDir.deleteSync();
+                expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
+            });
+
+
+            it("will not throw when the specified directory does not exist", () => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "xyzzy"));
+
+                expect(() => {
+                    dir.deleteSync();
+                }).not.toThrow();
+            });
+
+
         });
-
-    });
-
-});
-
-
-
-describe("deleteDirectorySync()", () => {
-
-
-    it("will completely remove the directory and its contents", () => {
-
-        const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
-        const testFile = new File(path.join(testDir.absPath(), "file.txt"));
-        const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
-
-        testDir.ensureExistsSync();
-        writeFileSync(testFile.absPath(), "A test file");    // TODO: Make a method out of this
-        testSubdir.ensureExistsSync();
-
-        deleteDirectorySync(testDir.absPath());
-        expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
     });
 
 
@@ -332,10 +335,12 @@ describe("deleteDirectorySync()", () => {
 
 describe("File", () => {
 
+
     describe("static", () => {
 
 
         describe("exists()", () => {
+
 
             it("will resolve to true for an existing file", () => {
                 return File.exists(__filename)
@@ -359,6 +364,7 @@ describe("File", () => {
                     expect(isFile).toBeFalsy();
                 });
             });
+
 
         });
 
@@ -385,60 +391,71 @@ describe("File", () => {
 
     });
 
-});
+
+    describe("instance", () => {
 
 
-describe("deleteFile()", () => {
+        describe("delete()", () => {
 
-    it("will delete the specified file", () => {
-        const filePathA = path.join(tmpDir.absPath(), "a.txt");
 
-        writeFileSync(filePathA, "This is file A");
-        expect(File.existsSync(filePathA)).toBeTruthy();
+            it("will delete the specified file", () => {
+                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
 
-        return deleteFile(filePathA)
-        .then(() => {
-            expect(File.existsSync(filePathA)).toBeFalsy();
+                writeFileSync(fileA.absPath(), "This is file A");
+                expect(File.existsSync(fileA.absPath())).toBeTruthy();
+
+                return fileA.delete()
+                .then(() => {
+                    expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                });
+
+            });
+
+
+            it("will resolve when the specified file does not exist", (done) => {
+                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+
+                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+
+                return fileA.delete()
+                .then(() => {
+                    done();
+                });
+            });
+
+
         });
 
-    });
+
+        describe("deleteSync()", () => {
 
 
-    it("will resolve when the specified file does not exist", (done) => {
-        const filePathA = path.join(tmpDir.absPath(), "xyzzy.txt");
+            it("will delete the specified file", () => {
+                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
+                writeFileSync(fileA.absPath(), "This is file A");
 
-        expect(File.existsSync(filePathA)).toBeFalsy();
+                expect(File.existsSync(fileA.absPath())).toBeTruthy();
 
-        return deleteFile(filePathA)
-        .then(() => {
-            done();
+                fileA.deleteSync();
+
+                // TODO: Once I have an instance version of exists() and existsSync(),
+                // search for exists.*absPath and update all occurrences.
+                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+            });
+
+
+            it("will just return when the specified file does not exist", () => {
+                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+
+                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                fileA.deleteSync();
+                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+            });
+
+
         });
-    });
-
-});
 
 
-describe("deleteFileSync()", () => {
-
-
-    it("will delete the specified file", () => {
-        const filePathA = path.join(tmpDir.absPath(), "a.txt");
-        writeFileSync(filePathA, "This is file A");
-
-        expect(File.existsSync(filePathA)).toBeTruthy();
-
-        deleteFileSync(filePathA);
-
-        expect(File.existsSync(filePathA)).toBeFalsy();
-    });
-
-
-    it("will just return when the specified file does not exist", () => {
-        const filePathA = path.join(tmpDir.absPath(), "xyzzy.txt");
-
-        expect(File.existsSync(filePathA)).toBeFalsy();
-        deleteFileSync(filePathA);
-        expect(File.existsSync(filePathA)).toBeFalsy();
     });
 
 });

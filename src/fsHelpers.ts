@@ -206,7 +206,7 @@ export class Directory
 
     public empty(): Promise<void>
     {
-        return deleteDirectory(this._dirPath)
+        return this.delete()
         .then(() => {
             return this.ensureExists();
         });
@@ -215,74 +215,76 @@ export class Directory
 
     public emptySync(): void
     {
-        deleteDirectorySync(this._dirPath);
+        this.deleteSync();
         this.ensureExistsSync();
     }
-}
 
 
-export function deleteDirectory(dirPath: string): Promise<void> {
-
-    return Directory.exists(dirPath)
-    .then((isDirectory: boolean) => {
-        if (!isDirectory){
-            // The specified directory does not exist.  Do nothing.
-            return Promise.resolve();
-        } else {
-            // First, delete the contents of the specified directory.
-            return readdirAsync(dirPath)
-            .then((items: Array<string>) => {
-                const absPaths = items.map((curItem) => {
-                    return path.join(dirPath, curItem);
-                });
-
-                const deletePromises = absPaths.map((curAbsPath: string) => {
-                    if (fs.statSync(curAbsPath).isDirectory()) {
-                        return deleteDirectory(curAbsPath);
-                    } else {
-                        return unlinkAsync(curAbsPath);
-                    }
-                });
-
-                return Promise.all(deletePromises);
-            })
-            .then(() => {
-                // Now that all of the items in the directory have been deleted, delete
-                // the directory itself.
-                return rmdirAsync(dirPath);
-            });
-        }
-    });
-}
-
-
-export function deleteDirectorySync(dirPath: string): void {
-
-    if (!Directory.existsSync(dirPath))
+    public delete(): Promise<void>
     {
-        // The directory does not exist.  Do nothing.
-        return;
+        return Directory.exists(this._dirPath)   // TODO: Replace with instance version
+        .then((isDirectory: boolean) => {
+            if (!isDirectory){
+                // The specified directory does not exist.  Do nothing.
+                return Promise.resolve();
+            } else {
+                // First, delete the contents of the specified directory.
+                return readdirAsync(this._dirPath)
+                .then((items: Array<string>) => {
+                    const absPaths = items.map((curItem) => {
+                        return path.join(this._dirPath, curItem);
+                    });
+
+                    const deletePromises = absPaths.map((curAbsPath: string) => {
+                        if (fs.statSync(curAbsPath).isDirectory()) {
+                            const subdir = new Directory(curAbsPath);
+                            return subdir.delete();
+                        } else {
+                            return unlinkAsync(curAbsPath);
+                        }
+                    });
+
+                    return Promise.all(deletePromises);
+                })
+                .then(() => {
+                    // Now that all of the items in the directory have been deleted, delete
+                    // the directory itself.
+                    return rmdirAsync(this._dirPath);
+                });
+            }
+        });
     }
 
-    // First, delete the contents of the specified directory.
-    let fsItems: Array<string> = fs.readdirSync(dirPath);
-    fsItems = fsItems.map((curFsItem) => {
-        return path.join(dirPath, curFsItem);
-    });
 
-    fsItems.forEach((curFsItem) => {
-        const stats = fs.statSync(curFsItem);
-        if (stats.isDirectory()) {
-            deleteDirectorySync(curFsItem);
+    public deleteSync(): void
+    {
+        if (!Directory.existsSync(this._dirPath))
+        {
+            // The directory does not exist.  Do nothing.
+            return;
         }
-        else {
-            fs.unlinkSync(curFsItem);
-        }
-    });
 
-    // Now that all of the items in the directory have been deleted, delete the
-    // directory itself.
-    fs.rmdirSync(dirPath);
+        // First, delete the contents of the specified directory.
+        let fsItems: Array<string> = fs.readdirSync(this._dirPath);
+        fsItems = fsItems.map((curFsItem) => {
+            return path.join(this._dirPath, curFsItem);
+        });
+
+        fsItems.forEach((curFsItem) => {
+            const stats = fs.statSync(curFsItem);
+            if (stats.isDirectory()) {
+                const subdir = new Directory(curFsItem);
+                subdir.deleteSync();
+            }
+            else {
+                fs.unlinkSync(curFsItem);
+            }
+        });
+
+        // Now that all of the items in the directory have been deleted, delete the
+        // directory itself.
+        fs.rmdirSync(this._dirPath);
+    }
 }
 
 
@@ -343,28 +345,29 @@ export class File
         return path.resolve(this._filePath);
     }
 
-}
 
-
-export function deleteFile(filePath: string): Promise<void> {
-    return File.exists(filePath)
-    .then((isFile: boolean) => {
-        if (!isFile) {
-            return Promise.resolve();
-        } else {
-            return unlinkAsync(filePath);
-        }
-    });
-}
-
-
-export function deleteFileSync(filePath: string): void {
-
-    if (!File.existsSync(filePath)) {
-        return;
+    public delete(): Promise<void>
+    {
+        return File.exists(this._filePath)
+        .then((isFile: boolean) => {
+            if (!isFile) {
+                return Promise.resolve();
+            } else {
+                return unlinkAsync(this._filePath);
+            }
+        });
     }
 
-    fs.unlinkSync(filePath);
+
+    public deleteSync(): void
+    {
+        if (!File.existsSync(this._filePath)) {
+            return;
+        }
+
+        fs.unlinkSync(this._filePath);
+    }
+
 }
 
 
@@ -462,11 +465,9 @@ export function pruneDir(dirPath: string): Promise<void> {
             })
             .then((dirIsEmpty) => {
                 if (dirIsEmpty) {
-                    // TODO: Move deleteDirectory() to Directory.
-                    return deleteDirectory(curSubdir);
+                    return subdir.delete();
                 }
-            })
-            .then(() => {});
+            });
         });
 
         return Promise.all(promises)
@@ -492,7 +493,7 @@ export function pruneDirSync(dirPath: string): void {
         //
         if (subdir.isEmptySync())
         {
-            deleteDirectorySync(curSubdir);
+            subdir.deleteSync();
         }
     });
 }

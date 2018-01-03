@@ -1,7 +1,6 @@
 import * as path from "path";
 import * as os from "os";
-import {spawn} from "./spawn";
-import {deleteDirectory, deleteFile, Directory} from "./fsHelpers";
+import {Directory, File} from "./fsHelpers";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 
@@ -25,7 +24,7 @@ function main(): void
     }
 
     const tmpDir = new Directory(path.join(os.homedir(), ".publish-to-git", "tmp"));
-    const publishRepoDir = path.join(tmpDir.absPath(), gitUrlToProjectName(publishConfig.publishRepository));
+    const publishRepoDir = new Directory(path.join(tmpDir.absPath(), gitUrlToProjectName(publishConfig.publishRepository)));
 
     let publishRepo: GitRepo;
 
@@ -34,7 +33,7 @@ function main(): void
         //
         // Delete the temporary publishing directory if it already exists.
         //
-        return deleteDirectory(publishRepoDir);
+        return publishRepoDir.delete();
     })
     .then(() => {
         //
@@ -71,7 +70,8 @@ function deleteTrackedFiles(repo: GitRepo): Promise<void>
         })
         .map((curAbsPath) => {
             // Delete
-            return deleteFile(curAbsPath);
+            const curFile = new File(curAbsPath);
+            return curFile.delete();
         });
 
         return Promise.all(deletePromises);

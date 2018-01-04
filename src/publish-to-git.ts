@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as os from "os";
-import {Directory, File} from "./fsHelpers";
+import {Directory} from "./directory";
+import {File} from "./file";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 

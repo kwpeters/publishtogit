@@ -1,7 +1,8 @@
 import * as path from "path";
 import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
 import {resetTmpFolder, tmpDir} from "./specHelpers";
-import {Directory, File} from "../src/fsHelpers";
+import {Directory} from "../src/directory";
+import {File} from "../src/file";
 
 
 describe("GitUrlToProjectName", () => {

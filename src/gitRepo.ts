@@ -1,4 +1,4 @@
-import {Directory} from "./fsHelpers";
+import {Directory} from "./directory";
 import * as path from "path";
 import {spawn} from "./spawn";
 import {readConfig, IPackageJson} from "./configHelpers";

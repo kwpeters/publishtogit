@@ -1,8 +1,8 @@
-import * as path from "path";
 import * as fs from "fs";
-import {Directory, File} from "../src/fsHelpers";
-import {tmpDir, resetTmpFolder} from "./specHelpers";
-import {writeFileSync} from "fs";
+import {resetTmpFolder, tmpDir} from "./specHelpers";
+import * as path from "path";
+import {File} from "../src/file";
+import {Directory, IDirectoryContents} from "../src/directory";
 
 
 describe("Directory", () => {
@@ -177,10 +177,11 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a file", () => {
 
-                writeFileSync(path.join(tmpDir.absPath(), "foo.txt"), "This is foo.txt");
+                // TODO: Use File below.
+                fs.writeFileSync(path.join(tmpDir.absPath(), "foo.txt"), "This is foo.txt");
 
                 return tmpDir.isEmpty()
-                .then((isEmpty) => {
+                .then((isEmpty: boolean) => {
                     expect(isEmpty).toBeFalsy();
                 });
             });
@@ -193,7 +194,7 @@ describe("Directory", () => {
                 fooDir.ensureExistsSync();
 
                 return tmpDir.isEmpty()
-                .then((isEmpty) => {
+                .then((isEmpty: boolean) => {
                     expect(isEmpty).toBeFalsy();
                 });
             });
@@ -201,7 +202,7 @@ describe("Directory", () => {
 
             it("will return true when a directory is empty", () => {
                 return tmpDir.isEmpty()
-                .then((isEmpty) => {
+                .then((isEmpty: boolean) => {
                     expect(isEmpty).toBeTruthy();
                 });
             });
@@ -218,7 +219,7 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a file", () => {
 
-                writeFileSync(path.join(tmpDir.absPath(), "foo.txt"), "This is foo.txt.");
+                fs.writeFileSync(path.join(tmpDir.absPath(), "foo.txt"), "This is foo.txt.");
                 expect(tmpDir.isEmptySync()).toBeFalsy();
             });
 
@@ -315,9 +316,9 @@ describe("Directory", () => {
                 const fileB = new File(path.join(tmpDir.absPath(), "b.txt"));
                 const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
 
-                writeFileSync(fileA.absPath(), "This is file A");  // TODO: Add method to write file contents
-                writeFileSync(fileB.absPath(), "This is file B");
-                writeFileSync(fileC.absPath(), "This is file C");
+                fs.writeFileSync(fileA.absPath(), "This is file A");  // TODO: Add method to write file contents
+                fs.writeFileSync(fileB.absPath(), "This is file B");
+                fs.writeFileSync(fileC.absPath(), "This is file C");
 
                 return tmpDir.empty()
                 .then(() => {
@@ -348,9 +349,9 @@ describe("Directory", () => {
                 const fileB = new File(path.join(tmpDir.absPath(), "b.txt"));
                 const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
 
-                writeFileSync(fileA.absPath(), "This is file A");   // TODO: Add method to write file contents
-                writeFileSync(fileB.absPath(), "This is file B");   // TODO: Add method to write file contents
-                writeFileSync(fileC.absPath(), "This is file C");   // TODO: Add method to write file contents
+                fs.writeFileSync(fileA.absPath(), "This is file A");   // TODO: Add method to write file contents
+                fs.writeFileSync(fileB.absPath(), "This is file B");   // TODO: Add method to write file contents
+                fs.writeFileSync(fileC.absPath(), "This is file C");   // TODO: Add method to write file contents
 
                 tmpDir.emptySync();
 
@@ -374,7 +375,7 @@ describe("Directory", () => {
                 const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
 
                 testDir.ensureExistsSync();
-                writeFileSync(testFile.absPath(), "A test file");
+                fs.writeFileSync(testFile.absPath(), "A test file");
                 testSubdir.ensureExistsSync();
 
                 return testDir.delete()
@@ -407,7 +408,7 @@ describe("Directory", () => {
                 const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
 
                 testDir.ensureExistsSync();
-                writeFileSync(testFile.absPath(), "A test file");    // TODO: Make a method out of this
+                fs.writeFileSync(testFile.absPath(), "A test file");    // TODO: Make a method out of this
                 testSubdir.ensureExistsSync();
 
                 testDir.deleteSync();
@@ -448,12 +449,13 @@ describe("Directory", () => {
                 new Directory(dirA).ensureExistsSync();
                 new Directory(dirB).ensureExistsSync();
 
-                writeFileSync(fileA, "This is file A");
-                writeFileSync(fileB, "This is file B");
-                writeFileSync(fileC, "This is file C");
+                // TODO: Repace all writeFileSync() with method from File.
+                fs.writeFileSync(fileA, "This is file A");
+                fs.writeFileSync(fileB, "This is file B");
+                fs.writeFileSync(fileC, "This is file C");
 
                 tmpDir.contents()
-                .then((result) => {
+                .then((result: IDirectoryContents) => {
                     expect(result.subdirs.length).toEqual(2);
                     expect(result.files.length).toEqual(1);
                     done();
@@ -486,9 +488,9 @@ describe("Directory", () => {
                 dirA.ensureExistsSync();
                 dirB.ensureExistsSync();
 
-                writeFileSync(fileA.absPath(), "file A");
-                writeFileSync(fileB.absPath(), "file B");
-                writeFileSync(fileC.absPath(), "file c");
+                fs.writeFileSync(fileA.absPath(), "file A");
+                fs.writeFileSync(fileB.absPath(), "file B");
+                fs.writeFileSync(fileC.absPath(), "file c");
 
                 const contents = tmpDir.contentsSync();
 
@@ -528,7 +530,7 @@ describe("Directory", () => {
                 new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
                 new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
                 new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-                writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
+                fs.writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
 
                 return tmpDir.prune()
                 .then(() => {
@@ -576,7 +578,7 @@ describe("Directory", () => {
                 new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
                 new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
                 new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-                writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
+                fs.writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
 
                 tmpDir.pruneSync();
 
@@ -598,230 +600,5 @@ describe("Directory", () => {
 
     });
 
-
-});
-
-
-describe("File", () => {
-
-
-    describe("static", () => {
-
-
-        describe("exists()", () => {
-
-
-            it("will resolve to a truthy stats object for an existing file", () => {
-                return File.exists(__filename)
-                .then((stats: fs.Stats | false) => {
-                    expect(stats).toBeTruthy();
-                });
-            });
-
-
-            it("will resolve to false for a file that does not exist", () => {
-                return File.exists(path.join(__dirname, "xyzzy.txt"))
-                .then((stats: fs.Stats | false) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-            it("will resolve to false for a directory with the specified path", () => {
-                return File.exists(__dirname)
-                .then((stats: fs.Stats | false) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-        });
-
-
-        describe("existsSync()", () => {
-
-
-            it("will return a truthy fs.Stats object for an existing file", () => {
-                expect(File.existsSync(__filename)).toBeTruthy();
-            });
-
-
-            it("will return false for a file that does not exist", () => {
-                expect(File.existsSync(path.join(__dirname, "xyzzy.txt"))).toBeFalsy();
-            });
-
-
-            it("will return false for a directory with the specified path", () => {
-                expect(File.existsSync(__dirname)).toBeFalsy();
-            });
-
-
-        });
-
-    });
-
-
-    describe("instance", () => {
-
-
-        describe("toString", () => {
-
-
-            it("will return the string that was passed into the constructor", () => {
-                const path = "./foo/bar.txt";
-                const file1 = new File(path);
-                expect(file1.toString()).toEqual(path);
-            });
-
-
-        });
-
-
-        describe("equals()", () => {
-
-
-            it("will return true for 2 files that are equal", () => {
-                const file1 = new File(__filename);
-                const file2 = new File(__filename);
-
-                expect(file1.equals(file2)).toBeTruthy();
-            });
-
-
-            it("will return false for 2 different files", () => {
-                const file1 = new File(path.join(".", "foo.txt"));
-                const file2 = new File(path.join(".", "bar.txt"));
-
-                expect(file1.equals(file2)).toBeFalsy();
-            });
-
-
-            it("will return false for two files named the same but in different folders", () => {
-                resetTmpFolder();
-
-                const file1 = new File(path.join(tmpDir.absPath(), "foo", "a.txt"));
-                const file2 = new File(path.join(tmpDir.absPath(), "bar", "a.txt"));
-
-                expect(file1.equals(file2)).toBeFalsy();
-            });
-
-
-        });
-
-
-        describe("exists()", () => {
-
-
-            it("will resolve to a Stats object for an existing file", () => {
-                const file = new File(__filename);
-                return file.exists()
-                .then((stats: fs.Stats | false) => {
-                    expect(stats).toBeTruthy();
-                });
-            });
-
-
-            it("will resolve to false for a file that does not exist", () => {
-                const file = new File(path.join(__dirname, "xyzzy.txt"));
-                return file.exists()
-                .then((result: fs.Stats | false) => {
-                    expect(result).toBeFalsy();
-                });
-            });
-
-
-            it("will resolve to false for a directory with the specified path", () => {
-                const file = new File(__dirname);
-                return file.exists()
-                .then((result: fs.Stats | false) => {
-                    expect(result).toBeFalsy();
-                });
-            });
-
-
-        });
-
-
-        describe("existsSync()", () => {
-
-
-            it("will return a truthy fs.Stats object for an existing file", () => {
-                expect(new File(__filename).existsSync()).toBeTruthy();
-            });
-
-
-            it("will return false for a file that does not exist", () => {
-                expect(new File(path.join(__dirname, "xyzzy.txt")).existsSync()).toBeFalsy();
-            });
-
-
-            it("will return false for a directory with the specified path", () => {
-                expect(new File(__dirname).existsSync()).toBeFalsy();
-            });
-
-
-        });
-
-
-        describe("delete()", () => {
-
-
-            it("will delete the specified file", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-
-                writeFileSync(fileA.absPath(), "This is file A");
-                expect(fileA.existsSync()).toBeTruthy();
-
-                return fileA.delete()
-                .then(() => {
-                    expect(fileA.existsSync()).toBeFalsy();
-                });
-
-            });
-
-
-            it("will resolve when the specified file does not exist", (done) => {
-                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
-
-                expect(fileA.existsSync()).toBeFalsy();
-
-                return fileA.delete()
-                .then(() => {
-                    done();
-                });
-            });
-
-
-        });
-
-
-        describe("deleteSync()", () => {
-
-
-            it("will delete the specified file", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-                writeFileSync(fileA.absPath(), "This is file A");
-
-                expect(fileA.existsSync()).toBeTruthy();
-
-                fileA.deleteSync();
-
-                expect(fileA.existsSync()).toBeFalsy();
-            });
-
-
-            it("will just return when the specified file does not exist", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
-
-                expect(fileA.existsSync()).toBeFalsy();
-                fileA.deleteSync();
-                expect(fileA.existsSync()).toBeFalsy();
-            });
-
-
-        });
-
-
-    });
 
 });

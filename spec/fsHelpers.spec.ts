@@ -65,6 +65,62 @@ describe("Directory", () => {
 
     describe("instance", () => {
 
+        describe("exists()", () => {
+
+
+            it("will resolve to true for an existing directory", () => {
+                const dir = new Directory(__dirname);
+                return dir.exists()
+                .then((isDirectory: boolean) => {
+                    expect(isDirectory).toBeTruthy();
+                });
+            });
+
+
+            it("will resolve to false for a directory that does not exist", () => {
+                const dir = new Directory(path.join(__dirname, "xyzzy"));
+                return dir.exists()
+                .then((isDirectory: boolean) => {
+                    expect(isDirectory).toBeFalsy();
+                });
+            });
+
+
+            it("will resolve to false for a file with the specified path", () => {
+                const dir = new Directory(__filename);
+                return dir.exists()
+                .then((isDirectory: boolean) => {
+                    expect(isDirectory).toBeFalsy();
+                });
+            });
+
+        });
+
+
+        describe("existsSync()", () => {
+
+
+            it("will return true for an existing directory", () => {
+                const dir = new Directory(__dirname);
+                expect(dir.existsSync()).toBeTruthy();
+            });
+
+
+            it("will return false for a directory that does not exist", () => {
+                const dir = new Directory(path.join(__dirname, "xyzzy"));
+                expect(dir.existsSync()).toBeFalsy();
+            });
+
+
+            it("will return false for a file with the specified path", () => {
+                const dir = new Directory(__filename);
+                expect(dir.existsSync()).toBeFalsy();
+            });
+
+
+        });
+
+
         describe("isEmpty()", () => {
 
             beforeEach(() => {
@@ -323,6 +379,177 @@ describe("Directory", () => {
 
 
         });
+
+
+        describe("contents()", () => {
+
+
+            beforeEach(() => {
+                resetTmpFolder();
+            });
+
+
+            it("will read the files and subdirectories within a directory", (done) => {
+
+                const dirA = path.join(tmpDir.absPath(), "dirA");
+                const fileA = path.join(dirA, "a.txt");
+
+                const dirB = path.join(tmpDir.absPath(), "dirB");
+                const fileB = path.join(dirB, "b.txt");
+
+                const fileC = path.join(tmpDir.absPath(), "c.txt");
+
+                new Directory(dirA).ensureExistsSync();
+                new Directory(dirB).ensureExistsSync();
+
+                writeFileSync(fileA, "This is file A");
+                writeFileSync(fileB, "This is file B");
+                writeFileSync(fileC, "This is file C");
+
+                tmpDir.contents()
+                .then((result) => {
+                    expect(result.subdirs.length).toEqual(2);
+                    expect(result.files.length).toEqual(1);
+                    done();
+                });
+
+            });
+
+
+        });
+
+
+        describe("contentsSync()", () => {
+
+
+            beforeEach(() => {
+                resetTmpFolder();
+            });
+
+
+            it("will read the files and subdirectories within a directory", () => {
+
+                const dirA = new Directory(path.join(tmpDir.absPath(), "dirA"));
+                const fileA = new File(path.join(dirA.absPath(), "a.txt"));
+
+                const dirB = new Directory(path.join(tmpDir.absPath(), "dirB"));
+                const fileB = new File(path.join(dirB.absPath(), "b.txt"));
+
+                const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
+
+                dirA.ensureExistsSync();
+                dirB.ensureExistsSync();
+
+                writeFileSync(fileA.absPath(), "file A");
+                writeFileSync(fileB.absPath(), "file B");
+                writeFileSync(fileC.absPath(), "file c");
+
+                const contents = tmpDir.contentsSync();
+
+                expect(contents.subdirs.length).toEqual(2);
+                expect(contents.files.length).toEqual(1);
+            });
+
+
+        });
+
+
+        describe("prune()", () => {
+
+
+            beforeEach(() => {
+                resetTmpFolder();
+            });
+
+
+            it("will recursively remove all subdirectories", () => {
+
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+
+                return tmpDir.prune()
+                .then(() => {
+                    expect(tmpDir.isEmptySync()).toBeTruthy();
+                });
+            });
+
+
+            it("will not prune directories containing files", () => {
+
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+                writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
+
+                return tmpDir.prune()
+                .then(() => {
+                    expect(tmpDir.isEmptySync()).toBeFalsy();
+
+                    const contents = tmpDir.contentsSync();
+                    expect(contents.subdirs.length).toEqual(1);
+                    expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
+                    expect(contents.files.length).toEqual(0);
+
+                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
+                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
+                    expect(File.existsSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"))).toBeTruthy();
+                });
+            });
+
+
+        });
+
+
+        describe("pruneSync()", () => {
+
+
+            beforeEach(() => {
+                resetTmpFolder();
+            });
+
+
+            it("will recursiveely remove all subdirectories", () => {
+
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+
+                tmpDir.pruneSync();
+
+                expect(tmpDir.isEmptySync()).toBeTruthy();
+            });
+
+
+            it("will not prune directories containing files", () => {
+
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
+                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+                writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
+
+                tmpDir.pruneSync();
+
+                expect(tmpDir.isEmptySync()).toBeFalsy();
+
+                const contents = tmpDir.contentsSync();
+
+                expect(contents.subdirs.length).toEqual(1);
+                expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
+                expect(contents.files.length).toEqual(0);
+
+                expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
+                expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
+                expect(File.existsSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"))).toBeTruthy();
+            });
+
+
+        });
+
     });
 
 
@@ -391,6 +618,60 @@ describe("File", () => {
     describe("instance", () => {
 
 
+        describe("exists()", () => {
+
+
+            it("will resolve to true for an existing file", () => {
+                const file = new File(__filename);
+                return file.exists()
+                .then((isFile: boolean) => {
+                    expect(isFile).toBeTruthy();
+                });
+            });
+
+
+            it("will resolve to false for a file that does not exist", () => {
+                const file = new File(path.join(__dirname, "xyzzy.txt"));
+                return file.exists()
+                .then((isFile: boolean) => {
+                    expect(isFile).toBeFalsy();
+                });
+            });
+
+
+            it("will resolve to false for a directory with the specified path", () => {
+                const file = new File(__dirname);
+                return file.exists()
+                .then((isFile: boolean) => {
+                    expect(isFile).toBeFalsy();
+                });
+            });
+
+
+        });
+
+
+        describe("existsSync()", () => {
+
+
+            it("will return true for an existing file", () => {
+                expect(new File(__filename).existsSync()).toBeTruthy();
+            });
+
+
+            it("will return false for a file that does not exist", () => {
+                expect(new File(path.join(__dirname, "xyzzy.txt")).existsSync()).toBeFalsy();
+            });
+
+
+            it("will return false for a directory with the specified path", () => {
+                expect(new File(__dirname).existsSync()).toBeFalsy();
+            });
+
+
+        });
+
+
         describe("delete()", () => {
 
 
@@ -453,175 +734,5 @@ describe("File", () => {
 
 
     });
-
-});
-
-
-describe("readDir()", () => {
-
-
-    beforeEach(() => {
-        resetTmpFolder();
-    });
-
-
-    it("will read the files and subdirectories within a directory", (done) => {
-
-        const dirA = path.join(tmpDir.absPath(), "dirA");
-        const fileA = path.join(dirA, "a.txt");
-
-        const dirB = path.join(tmpDir.absPath(), "dirB");
-        const fileB = path.join(dirB, "b.txt");
-
-        const fileC = path.join(tmpDir.absPath(), "c.txt");
-
-        new Directory(dirA).ensureExistsSync();
-        new Directory(dirB).ensureExistsSync();
-
-        writeFileSync(fileA, "This is file A");
-        writeFileSync(fileB, "This is file B");
-        writeFileSync(fileC, "This is file C");
-
-        tmpDir.contents()
-        .then((result) => {
-            expect(result.subdirs.length).toEqual(2);
-            expect(result.files.length).toEqual(1);
-            done();
-        });
-
-    });
-
-
-});
-
-
-describe("readDirSync()", () => {
-
-
-    beforeEach(() => {
-        resetTmpFolder();
-    });
-
-
-    it("will read the files and subdirectories within a directory", () => {
-
-        const dirA = new Directory(path.join(tmpDir.absPath(), "dirA"));
-        const fileA = new File(path.join(dirA.absPath(), "a.txt"));
-
-        const dirB = new Directory(path.join(tmpDir.absPath(), "dirB"));
-        const fileB = new File(path.join(dirB.absPath(), "b.txt"));
-
-        const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
-
-        dirA.ensureExistsSync();
-        dirB.ensureExistsSync();
-
-        writeFileSync(fileA.absPath(), "file A");
-        writeFileSync(fileB.absPath(), "file B");
-        writeFileSync(fileC.absPath(), "file c");
-
-        const contents = tmpDir.contentsSync();
-
-        expect(contents.subdirs.length).toEqual(2);
-        expect(contents.files.length).toEqual(1);
-    });
-
-
-});
-
-
-describe("pruneDir()", () => {
-
-
-    beforeEach(() => {
-        resetTmpFolder();
-    });
-
-
-    it("will recursively remove all subdirectories", () => {
-
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-
-        return tmpDir.prune()
-        .then(() => {
-            expect(tmpDir.isEmptySync()).toBeTruthy();
-        });
-    });
-
-
-    it("will not prune directories containing files", () => {
-
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-        writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
-
-        return tmpDir.prune()
-        .then(() => {
-            expect(tmpDir.isEmptySync()).toBeFalsy();
-
-            const contents = tmpDir.contentsSync();
-            expect(contents.subdirs.length).toEqual(1);
-            expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
-            expect(contents.files.length).toEqual(0);
-
-            expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
-            expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
-            expect(File.existsSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"))).toBeTruthy();
-        });
-    });
-
-
-});
-
-
-describe("pruneDirSync()", () => {
-
-
-    beforeEach(() => {
-        resetTmpFolder();
-    });
-
-
-    it("will recursiveely remove all subdirectories", () => {
-
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-
-        tmpDir.pruneSync();
-
-        expect(tmpDir.isEmptySync()).toBeTruthy();
-    });
-
-
-    it("will not prune directories containing files", () => {
-
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-        new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-        writeFileSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"), "This is foo.txt");
-
-        tmpDir.pruneSync();
-
-        expect(tmpDir.isEmptySync()).toBeFalsy();
-
-        const contents = tmpDir.contentsSync();
-
-        expect(contents.subdirs.length).toEqual(1);
-        expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
-        expect(contents.files.length).toEqual(0);
-
-        expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
-        expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
-        expect(File.existsSync(path.join(tmpDir.absPath(), "dirA", "foo.txt"))).toBeTruthy();
-    });
-
 
 });

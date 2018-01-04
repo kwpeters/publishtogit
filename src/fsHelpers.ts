@@ -25,36 +25,13 @@ export class Directory
 
     public static exists(dirPath: string): Promise<boolean>
     {
-        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
-            fs.stat(dirPath, (err: any, stats: fs.Stats) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    resolve(stats.isDirectory());
-                }
-            });
-        });
+        return new Directory(dirPath).exists();
     }
 
 
     public static existsSync(dirPath: string): boolean
     {
-        try
-        {
-            const stats = fs.statSync(dirPath);
-            return stats.isDirectory();
-        }
-        catch (err)
-        {
-            if (err.code === "ENOENT")
-            {
-                return false;
-            }
-            else
-            {
-                throw err;
-            }
-        }
+        return new Directory(dirPath).existsSync();
     }
 
 
@@ -73,6 +50,41 @@ export class Directory
     public absPath(): string
     {
         return path.resolve(this._dirPath);
+    }
+
+
+    public exists(): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+            fs.stat(this._dirPath, (err: any, stats: fs.Stats) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(stats.isDirectory());
+                }
+            });
+        });
+    }
+
+
+    public existsSync(): boolean
+    {
+        try
+        {
+            const stats = fs.statSync(this._dirPath);
+            return stats.isDirectory();
+        }
+        catch (err)
+        {
+            if (err.code === "ENOENT")
+            {
+                return false;
+            }
+            else
+            {
+                throw err;
+            }
+        }
     }
 
 
@@ -426,34 +438,13 @@ export class File
 
     public static exists(filePath: string): Promise<boolean>
     {
-        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
-            fs.stat(filePath, (err: any, stats: fs.Stats) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    resolve(stats.isFile());
-                }
-            });
-        });
+        return new File(filePath).exists();
     }
 
 
     public static existsSync(filePath: string): boolean
     {
-        try {
-            const stats = fs.statSync(filePath);
-            return stats.isFile();
-        }
-        catch (err) {
-            if (err.code === "ENOENT")
-            {
-                return false;
-            }
-            else
-            {
-                throw err;
-            }
-        }
+        return new File(filePath).existsSync();
     }
 
 
@@ -466,6 +457,42 @@ export class File
     public toString(): string
     {
         return this._filePath;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // LEFT OFF HERE: Bring the implementations from the static methods (above) here.
+    ////////////////////////////////////////////////////////////////////////////////
+    public exists(): Promise<boolean>
+    {
+        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+            fs.stat(this._filePath, (err: any, stats: fs.Stats) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(stats.isFile());
+                }
+            });
+        });
+    }
+
+
+    public existsSync(): boolean
+    {
+        try {
+            const stats = fs.statSync(this._filePath);
+            return stats.isFile();
+        }
+        catch (err) {
+            if (err.code === "ENOENT")
+            {
+                return false;
+            }
+            else
+            {
+                throw err;
+            }
+        }
     }
 
 

@@ -1,7 +1,8 @@
 import * as fs from "fs";
+import * as path from "path";
 import {resetTmpFolder, tmpDir} from "./specHelpers";
 import {File} from "../src/file";
-import * as path from "path";
+import {Directory} from "../src/directory";
 
 
 describe("File", () => {
@@ -67,7 +68,65 @@ describe("File", () => {
     describe("instance", () => {
 
 
-        describe("toString", () => {
+        describe("dirName, baseName, fileName, extName", () => {
+
+
+            it("will give the correct parts of a normal file path", () => {
+                const file1: File = new File(path.join("..", "tmp", "bar", "baz.txt"));
+                expect(file1.dirName).toEqual("../tmp/bar/");
+                expect(file1.baseName).toEqual("baz");
+                expect(file1.fileName).toEqual("baz.txt");
+                expect(file1.extName).toEqual(".txt");
+            });
+
+
+            it("will give the correct parts of a file path with no directory", () => {
+                const file: File = new File("baz.foo");
+
+                expect(file.dirName).toEqual("./");
+                expect(file.baseName).toEqual("baz");
+                expect(file.fileName).toEqual("baz.foo");
+                expect(file.extName).toEqual(".foo");
+            });
+
+
+            it("will give the correct parts of a file path with no extension", () => {
+                const file: File = new File("../tmp/bar/baz");
+
+                expect(file.dirName).toEqual("../tmp/bar/");
+                expect(file.baseName).toEqual("baz");
+                expect(file.fileName).toEqual("baz");
+                expect(file.extName).toEqual("");
+            });
+
+
+            it("will give the correct parts for a dotfile", () => {
+                const file: File = new File("../tmp/bar/.baz");
+
+                expect(file.dirName).toEqual("../tmp/bar/");
+                expect(file.baseName).toEqual(".baz");
+                expect(file.fileName).toEqual(".baz");
+                expect(file.extName).toEqual("");
+            });
+
+
+        });
+
+
+        describe("directory", () => {
+
+
+            it("will return a Directory object representing the directory containing the file", () => {
+                const dir = new Directory("../foo/bar");
+                const file = new File(path.join(dir.toString(), "baz.txt"));
+                expect(file.directory.toString()).toEqual(dir.toString());
+            });
+
+
+        });
+
+
+        describe("toString()", () => {
 
 
             it("will return the string that was passed into the constructor", () => {

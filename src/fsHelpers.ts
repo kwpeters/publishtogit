@@ -460,9 +460,6 @@ export class File
     }
 
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // LEFT OFF HERE: Bring the implementations from the static methods (above) here.
-    ////////////////////////////////////////////////////////////////////////////////
     public exists(): Promise<boolean>
     {
         return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {

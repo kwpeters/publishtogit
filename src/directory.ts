@@ -273,7 +273,6 @@ export class Directory
                             const subdir = new Directory(curAbsPath);
                             return subdir.delete();
                         } else {
-                            // TODO: Delegate to File to delete the file.
                             return unlinkAsync(curAbsPath);
                         }
                     });

@@ -90,6 +90,34 @@ export function promisify2<ResultType, Arg1Type, Arg2Type>(
 
 
 /**
+ * Adapts a Node-style async function with three parameters and a callback to a function
+ * that takes three parameters and returns a Promise.  This function is similar to
+ * promisifyN(), except that it retains type safety.
+ * @param func - The Node-style function that takes three arguments and a
+ * Node-style callback.
+ * @return A function that takes the three arguments and returns a Promise for the
+ * result.
+ */
+export function promisify3<ResultType, Arg1Type, Arg2Type, Arg3Type>(
+    func: (arg1: Arg1Type, arg2: Arg2Type, arg3: Arg3Type, cb: CallBackType<ResultType> ) => void
+): (arg1: Arg1Type, arg2: Arg2Type, arg3: Arg3Type) => Promise<ResultType> {
+
+    const promisifiedFunc = function (arg1: Arg1Type, arg2: Arg2Type, arg3: Arg3Type): Promise<ResultType> {
+        return new Promise<ResultType>((resolve: (result: ResultType) => void, reject: (err: any) => void) => {
+            func(arg1, arg2, arg3, (err: any, result?: ResultType) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result!);
+                }
+            });
+        });
+    };
+    return promisifiedFunc;
+}
+
+
+/**
  * Runs a sequence of functions in order with each returned value feeding into
  * the parameter of the next.
  * @param tasks - The functions to execute in sequence.  Each function will

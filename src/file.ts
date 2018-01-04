@@ -1,10 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
-import {promisify1} from "./promiseHelpers";
+import {promisify1, promisify3} from "./promiseHelpers";
 import {Directory} from "./directory";
+import {ListenerTracker} from "./listenerTracker";
 
 
 const unlinkAsync = promisify1<void, string>(fs.unlink);
+const statAsync   = promisify1<fs.Stats, string>(fs.stat);
+const utimesAsync = promisify3<void, string, string | number | Date, string | number | Date>(fs.utimes);
 
 
 export class File
@@ -167,7 +170,68 @@ export class File
     }
 
 
-    // TODO: copy()
+    /**
+     * Copies this file to the specified destination.
+     * @param dstDirOrFile - If a File, specifies the
+     * destination directory and file name.  If a directory, specifies only the
+     * destination directory and destFileName specifies the destination file
+     * name.
+     * @param dstFileName - When destDirOrFile is a Directory,
+     * optionally specifies the destination file name.  If omitted, the
+     * destination file name will be the same as the source (this File).
+     * @return A Promise for a File representing the destination file.
+     */
+    public copy(dstDirOrFile: Directory | File, dstFileName?: string): Promise<File>
+    {
+        //
+        // Based on the parameters, figure out what the destination file path is
+        // going to be.
+        //
+        let destFile: File;
+
+        if (dstDirOrFile instanceof File) {
+            // The caller has specified the destination directory and file
+            // name in the form of a File.
+            destFile = dstDirOrFile;
+        } else {           // dstDirOrFile instanceof Directory
+            // The caller has specified the destination directory and
+            // optionally a new file name.
+            if (dstFileName === undefined) {
+                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+            } else {
+                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+            }
+        }
+
+        //
+        // Before we do anything, make sure that the source file exists.  If it
+        // doesn't we should get out before we create the destination file.
+        //
+        return this.exists()
+        .then((stats: fs.Stats | false) => {
+            if (!stats)
+            {
+                throw new Error(`Source file ${this._filePath} does not exist.`);
+            }
+        })
+        .then(() => {
+            //
+            // Make sure the directory for the destination file exists.
+            //
+            return destFile.directory.ensureExists();
+        })
+        .then(() => {
+            //
+            // Do the copy.
+            //
+            return copyFile(this._filePath, destFile.toString(), {preserveTimestamps: true});
+        })
+        .then(() => {
+            return destFile;
+        });
+    }
+
+
     // TODO: copySync()
     // TODO: move()
     // TODO: moveSync()
@@ -236,4 +300,71 @@ export class File
         return fs.readFileSync(this._filePath, {encoding: "utf8"});
     }
 
+
+}
+
+
+export interface ICopyOptions
+{
+    preserveTimestamps: boolean;
+}
+
+
+function copyFile(source: string, dest: string, options?: ICopyOptions): Promise<void>
+{
+    //
+    // Design Note
+    // We could have used fs.readFile() and fs.writeFile() here, but that would
+    // read the entire file contents of the source file into memory.  It is
+    // thought that using streams is more efficient and performant because
+    // streams can read and write smaller chunks of the data.
+    //
+
+    return new Promise<void>((resolve: () => void, reject: (err: any) => void) => {
+
+        const readStream = fs.createReadStream(source);
+        const readListenerTracker = new ListenerTracker(readStream);
+
+        const writeStream = fs.createWriteStream(dest);
+        const writeListenerTracker = new ListenerTracker(writeStream);
+
+        readListenerTracker.on("error", (err) => {
+            reject(err);
+            readListenerTracker.removeAll();
+            writeListenerTracker.removeAll();
+        });
+
+        writeListenerTracker.on("error", (err) => {
+            reject(err);
+            readListenerTracker.removeAll();
+            writeListenerTracker.removeAll();
+        });
+
+        writeListenerTracker.on("close", () => {
+            resolve();
+            readListenerTracker.removeAll();
+            writeListenerTracker.removeAll();
+        });
+
+        readStream.pipe(writeStream);
+    })
+    .then(() => {
+        if (options && options.preserveTimestamps)
+        {
+            //
+            // The caller wants to preserve the source file's timestamps.  Copy
+            // them to the destination file now.
+            //
+            return statAsync(source)
+            .then((srcStats: fs.Stats) => {
+                //
+                // Note:  Setting the timestamps on dest requires us to specify
+                // the timestamp in seconds (not milliseconds).  When we divide
+                // by 1000 below and truncation happes, we are actually setting
+                // dest's timestamps *before* those of of source.
+                //
+                return utimesAsync(dest, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
+            });
+        }
+    });
 }

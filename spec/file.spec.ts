@@ -281,6 +281,156 @@ describe("File", () => {
         });
 
 
+        describe("copy", () => {
+
+
+            beforeEach(() => {
+                tmpDir.emptySync();
+                jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
+            });
+
+
+            it("will copy the file to the specified destination directory", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.copy(dstDir)
+                .then((dstFile) => {
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "file.txt"));
+                    expect(dstFile.readSync()).toEqual("abc");
+                    done();
+                });
+
+            });
+
+
+            it("will rename the file when a directory and filename is specified", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("123");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.copy(dstDir, "dest.txt")
+                .then((dstFile) => {
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "dest.txt"));
+                    expect(dstFile.readSync()).toEqual("123");
+                    done();
+                });
+            });
+
+
+            it("will rename the file when a destination File is specified", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("def");
+
+                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+
+                srcFile.copy(dstFile)
+                .then((dstFile) => {
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                    expect(dstFile.readSync()).toEqual("def");
+                    done();
+                });
+            });
+
+
+            it("will reject if the source file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.copy(dstDir)
+                .catch(() => {
+                    done();
+                });
+            });
+
+
+            it("will not create a destination directory if the source file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.copy(dstDir)
+                .catch(() => {
+                    expect(dstDir.existsSync()).toBeFalsy();
+                    done();
+                });
+            });
+
+
+            it("will not create a destination file if the source file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.copy(dstDir)
+                .catch(() => {
+                    const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                    expect(dstFile.existsSync()).toBeFalsy();
+                    done();
+                });
+            });
+
+
+            it("will overwrite an existing desintation file", (done) => {
+                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                oldDstFile.writeSync("old");
+
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                srcFile.writeSync("new");
+
+                srcFile.copy(oldDstFile)
+                .then((newDstFile) => {
+                    expect(newDstFile.existsSync()).toBeTruthy();
+                    expect(newDstFile.absPath()).toEqual(oldDstFile.absPath());
+                    expect(newDstFile.readSync()).toEqual("new");
+                    done();
+                });
+            });
+
+
+            it("will copy the atime and mtime from the source file", (done) => {
+
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+
+                // There is a maximum possible error of 1 second when
+                // copying the source's timestamps to the destination.
+                // To make sure the timestamps are being copied, we are
+                // waiting for 2 seconds before doing the copy and then
+                // making sure that the timestamp deltas are within the
+                // allowable 1 second.
+                setTimeout(() => {
+                    srcFile.copy(dstFile)
+                    .then(() => {
+                        // We get the source file's stats after the copy has
+                        // happened, because copying it changes its last access
+                        // time (atime).
+                        const srcStats = srcFile.existsSync();
+                        const dstStats = dstFile.existsSync();
+
+                        if (!srcStats || !dstStats)
+                        {
+                            fail();
+                            return;
+                        }
+
+                        expect(dstStats.atime.valueOf() - srcStats.atime.valueOf()).toBeLessThan(1000);
+                        expect(dstStats.mtime.valueOf() - srcStats.mtime.valueOf()).toBeLessThan(1000);
+                        done();
+                    });
+                }, 2000);
+            });
+
+
+        });
+
+
         describe("write()", () => {
 
 

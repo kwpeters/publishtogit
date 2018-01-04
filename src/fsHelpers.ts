@@ -106,7 +106,7 @@ export class Directory
 
     public ensureExists(): Promise<void>
     {
-        return Directory.exists(this._dirPath)
+        return this.exists()
         .then((isDirectory: boolean) =>
         {
             if (isDirectory)
@@ -176,7 +176,7 @@ export class Directory
 
     public ensureExistsSync(): void
     {
-        if (Directory.existsSync(this._dirPath))
+        if (this.existsSync())
         {
             return;
         }
@@ -241,7 +241,7 @@ export class Directory
 
     public delete(): Promise<void>
     {
-        return Directory.exists(this._dirPath)   // TODO: Replace with instance version
+        return this.exists()
         .then((isDirectory: boolean) => {
             if (!isDirectory){
                 // The specified directory does not exist.  Do nothing.
@@ -277,7 +277,7 @@ export class Directory
 
     public deleteSync(): void
     {
-        if (!Directory.existsSync(this._dirPath))
+        if (!this.existsSync())
         {
             // The directory does not exist.  Do nothing.
             return;
@@ -501,7 +501,7 @@ export class File
 
     public delete(): Promise<void>
     {
-        return File.exists(this._filePath)
+        return this.exists()
         .then((isFile: boolean) => {
             if (!isFile) {
                 return Promise.resolve();
@@ -514,7 +514,7 @@ export class File
 
     public deleteSync(): void
     {
-        if (!File.existsSync(this._filePath)) {
+        if (!this.existsSync()) {
             return;
         }
 

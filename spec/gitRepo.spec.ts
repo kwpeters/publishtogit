@@ -1,6 +1,6 @@
 import * as path from "path";
 import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
-import {resetTmpFolder, tmpDir} from "./specHelpers";
+import {tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";
 import {File} from "../src/file";
 
@@ -57,7 +57,7 @@ describe("GitRepo", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -85,7 +85,7 @@ describe("GitRepo", () => {
         describe("files()", () => {
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 

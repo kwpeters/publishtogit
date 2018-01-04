@@ -1,13 +1,13 @@
 import * as path from "path";
 import * as fs from "fs";
 import {spawn} from "../src/spawn";
-import {tmpDir, resetTmpFolder} from "./specHelpers";
+import {tmpDir} from "./specHelpers";
 
 
 describe("spawn", () => {
 
     beforeEach(() => {
-        resetTmpFolder();
+        tmpDir.emptySync();
     });
 
 

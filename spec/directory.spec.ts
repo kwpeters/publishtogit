@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import {resetTmpFolder, tmpDir} from "./specHelpers";
+import {tmpDir} from "./specHelpers";
 import * as path from "path";
 import {File} from "../src/file";
 import {Directory, IDirectoryContents} from "../src/directory";
@@ -100,7 +100,7 @@ describe("Directory", () => {
 
 
             it("will return false for two directories named the same but in different folders", () => {
-                resetTmpFolder();
+                tmpDir.emptySync();
 
                 const dir1 = new Directory(path.join(tmpDir.absPath(), "foo", "dir"));
                 const dir2 = new Directory(path.join(tmpDir.absPath(), "bar", "dir"));
@@ -171,7 +171,7 @@ describe("Directory", () => {
         describe("isEmpty()", () => {
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -213,7 +213,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -245,7 +245,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -432,7 +432,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -471,7 +471,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -506,7 +506,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 
@@ -555,7 +555,7 @@ describe("Directory", () => {
 
 
             beforeEach(() => {
-                resetTmpFolder();
+                tmpDir.emptySync();
             });
 
 

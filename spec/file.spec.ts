@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import {resetTmpFolder, tmpDir} from "./specHelpers";
+import {tmpDir} from "./specHelpers";
 import {File} from "../src/file";
 import {Directory} from "../src/directory";
 
@@ -159,7 +159,7 @@ describe("File", () => {
 
 
             it("will return false for two files named the same but in different folders", () => {
-                resetTmpFolder();
+                tmpDir.emptySync();
 
                 const file1 = new File(path.join(tmpDir.absPath(), "foo", "a.txt"));
                 const file2 = new File(path.join(tmpDir.absPath(), "bar", "a.txt"));
@@ -281,6 +281,115 @@ describe("File", () => {
             });
 
 
+        });
+
+
+        describe("write()", () => {
+
+
+            it("creates the necessary directories", (done) => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+
+                file.write("hello world")
+                .then(() => {
+                    expect(dir.existsSync()).toBeTruthy();
+                    expect(file.existsSync()).toBeTruthy();
+                    done();
+                });
+
+            });
+
+
+            it("writes the specified text to the file", (done) => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+
+                file.write("hello world")
+                .then(() => {
+                    return file.read();
+                })
+                .then((text: string) => {
+                    expect(text).toEqual("hello world");
+                    done();
+                });
+            });
+        });
+
+
+        describe("writeSync()", () => {
+
+
+            it("creates the necessary directories", () => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+
+                file.writeSync("hello world");
+                expect(dir.existsSync()).toBeTruthy();
+                expect(file.existsSync()).toBeTruthy();
+            });
+
+
+            it("writes the specified text to the file", () => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+
+                file.writeSync("hello world");
+
+                expect(file.readSync()).toEqual("hello world");
+            });
+
+
+        });
+
+
+        describe("read()", () => {
+
+
+            it("can read the contents of a file", (done) => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+                file.writeSync("12345");
+
+                file.read()
+                .then((text) => {
+                    expect(text).toEqual("12345");
+                    done()
+                });
+            });
+
+
+            it("will reject if the file being read does not exist", (done) => {
+                const file = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+
+                file.read()
+                .catch(() => {
+                    done();
+                });
+            });
+
+
+        });
+
+
+        describe("readSync()", () => {
+
+
+            it("can read the contents of a file", () => {
+                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
+                const file = new File(path.join(dir.absPath(), "file.txt"));
+                file.writeSync("12345");
+
+                expect(file.readSync()).toEqual("12345");
+            });
+
+
+            it("will throw if the file being read does not exist", () => {
+                const file = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+                expect(() => {
+                    file.readSync();
+                }).toThrow();
+            });
         });
 
 

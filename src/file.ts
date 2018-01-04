@@ -171,9 +171,69 @@ export class File
     // TODO: copySync()
     // TODO: move()
     // TODO: moveSync()
-    // TODO: write()
-    // TODO: writeSync()
-    // TODO: read()
-    // TODO: readSync()
+
+
+    /**
+     * Write text to this file, replacing the file if it exists.  If any parent
+     * directories do not exist, they are created.
+     * @param text - The new contents of this file
+     * @return A Promise that is resolved when the file has been written.
+     */
+    public write(text: string): Promise<void>
+    {
+        return this.directory.ensureExists()
+        .then(() => {
+            fs.writeFile(this._filePath, text, (err) => {
+                if (err)
+                {
+                    throw err;
+                }
+            });
+        });
+    }
+
+
+    /**
+     * Writes text to this file, replacing the file if it exists.  If any parent
+     * directories do not exist, they are created.
+     * @param text - The new contents of this file
+     */
+    public writeSync(text: string): void
+    {
+        this.directory.ensureExistsSync();
+        fs.writeFileSync(this._filePath, text);
+    }
+
+
+    /**
+     * Reads the contents of this file as a string.  Rejects if this file does
+     * not exist.
+     * @return A Promise for the text contents of this file
+     */
+    public read(): Promise<string>
+    {
+        return new Promise<string>((resolve: (text: string) => void, reject: (err: any) => void) => {
+            fs.readFile(this._filePath, {encoding: "utf8"}, (err, data) => {
+                if (err)
+                {
+                    reject(err);
+                    return;
+                }
+
+                resolve(data);
+            })
+        })
+    }
+
+
+    /**
+     * Reads the contents of this file as a string.  Throws if this file does
+     * not exist.
+     * @return This file's contents
+     */
+    public readSync(): string
+    {
+        return fs.readFileSync(this._filePath, {encoding: "utf8"});
+    }
 
 }

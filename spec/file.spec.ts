@@ -230,15 +230,13 @@ describe("File", () => {
 
             it("will delete the specified file", () => {
                 const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-
-                fs.writeFileSync(fileA.absPath(), "This is file A");
+                fileA.writeSync("This is file A");
                 expect(fileA.existsSync()).toBeTruthy();
 
                 return fileA.delete()
                 .then(() => {
                     expect(fileA.existsSync()).toBeFalsy();
                 });
-
             });
 
 
@@ -262,8 +260,7 @@ describe("File", () => {
 
             it("will delete the specified file", () => {
                 const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-                fs.writeFileSync(fileA.absPath(), "This is file A");
-
+                fileA.writeSync("This is file A");
                 expect(fileA.existsSync()).toBeTruthy();
 
                 fileA.deleteSync();

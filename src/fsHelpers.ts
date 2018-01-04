@@ -23,13 +23,13 @@ export class Directory
     //endregion
 
 
-    public static exists(dirPath: string): Promise<boolean>
+    public static exists(dirPath: string): Promise<fs.Stats | false>
     {
         return new Directory(dirPath).exists();
     }
 
 
-    public static existsSync(dirPath: string): boolean
+    public static existsSync(dirPath: string): fs.Stats | false
     {
         return new Directory(dirPath).existsSync();
     }
@@ -47,35 +47,44 @@ export class Directory
     }
 
 
+    public equals(otherDir: Directory): boolean
+    {
+        return this.absPath() === otherDir.absPath();
+    }
+
+
     public absPath(): string
     {
         return path.resolve(this._dirPath);
     }
 
 
-    public exists(): Promise<boolean>
+    public exists(): Promise<fs.Stats | false>
     {
-        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+        return new Promise<fs.Stats | false>((resolve: (result: fs.Stats | false) => void) => {
             fs.stat(this._dirPath, (err: any, stats: fs.Stats) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    resolve(stats.isDirectory());
+
+                if (!err && stats.isDirectory())
+                {
+                    resolve(stats);
                 }
+                else
+                {
+                    resolve(false);
+                }
+
             });
         });
     }
 
 
-    public existsSync(): boolean
+    public existsSync(): fs.Stats | false
     {
-        try
-        {
+        try {
             const stats = fs.statSync(this._dirPath);
-            return stats.isDirectory();
+            return stats.isDirectory() ? stats : false;
         }
-        catch (err)
-        {
+        catch (err) {
             if (err.code === "ENOENT")
             {
                 return false;
@@ -107,12 +116,13 @@ export class Directory
     public ensureExists(): Promise<void>
     {
         return this.exists()
-        .then((isDirectory: boolean) =>
+        .then((stats: fs.Stats | false) =>
         {
-            if (isDirectory)
+            if (stats)
             {
                 return true;
-            } else
+            }
+            else
             {
                 const parts = this._dirPath.split(path.sep);
 
@@ -242,11 +252,14 @@ export class Directory
     public delete(): Promise<void>
     {
         return this.exists()
-        .then((isDirectory: boolean) => {
-            if (!isDirectory){
+        .then((stats: fs.Stats | false) => {
+            if (!stats)
+            {
                 // The specified directory does not exist.  Do nothing.
                 return Promise.resolve();
-            } else {
+            }
+            else
+            {
                 // First, delete the contents of the specified directory.
                 return readdirAsync(this._dirPath)
                 .then((items: Array<string>) => {
@@ -436,13 +449,13 @@ export class File
     //endregion
 
 
-    public static exists(filePath: string): Promise<boolean>
+    public static exists(filePath: string): Promise<fs.Stats | false>
     {
         return new File(filePath).exists();
     }
 
 
-    public static existsSync(filePath: string): boolean
+    public static existsSync(filePath: string): fs.Stats | false
     {
         return new File(filePath).existsSync();
     }
@@ -454,31 +467,49 @@ export class File
     }
 
 
+    // TODO: dirName
+    // TODO: baseName
+    // TODO: fileName
+    // TODO: extName
+    // TODO: directory
+
+
     public toString(): string
     {
         return this._filePath;
     }
 
 
-    public exists(): Promise<boolean>
+    public equals(otherFile: File): boolean
     {
-        return new Promise<boolean>((resolve: (isDirectory: boolean) => void) => {
+        return this.absPath() === otherFile.absPath();
+    }
+
+
+    public exists(): Promise<fs.Stats | false>
+    {
+        return new Promise<fs.Stats | false>((resolve: (result: fs.Stats | false) => void) => {
             fs.stat(this._filePath, (err: any, stats: fs.Stats) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    resolve(stats.isFile());
+
+                if (!err && stats.isFile())
+                {
+                    resolve(stats);
                 }
+                else
+                {
+                    resolve(false);
+                }
+
             });
         });
     }
 
 
-    public existsSync(): boolean
+    public existsSync(): fs.Stats | false
     {
         try {
             const stats = fs.statSync(this._filePath);
-            return stats.isFile();
+            return stats.isFile() ? stats : false;
         }
         catch (err) {
             if (err.code === "ENOENT")
@@ -502,8 +533,8 @@ export class File
     public delete(): Promise<void>
     {
         return this.exists()
-        .then((isFile: boolean) => {
-            if (!isFile) {
+        .then((stats: fs.Stats | false) => {
+            if (!stats) {
                 return Promise.resolve();
             } else {
                 return unlinkAsync(this._filePath);
@@ -520,5 +551,15 @@ export class File
 
         fs.unlinkSync(this._filePath);
     }
+
+
+    // TODO: copy()
+    // TODO: copySync()
+    // TODO: move()
+    // TODO: moveSync()
+    // TODO: write()
+    // TODO: writeSync()
+    // TODO: read()
+    // TODO: readSync()
 
 }

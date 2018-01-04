@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs";
 import {Directory, File} from "../src/fsHelpers";
 import {tmpDir, resetTmpFolder} from "./specHelpers";
 import {writeFileSync} from "fs";
@@ -13,26 +14,26 @@ describe("Directory", () => {
         describe("exists()", () => {
 
 
-            it("will resolve to true for an existing directory", () => {
+            it("will resolve to a truthy fs.Stats object for an existing directory", () => {
                 return Directory.exists(__dirname)
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeTruthy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeTruthy();
                 });
             });
 
 
             it("will resolve to false for a directory that does not exist", () => {
                 return Directory.exists(path.join(__dirname, "xyzzy"))
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
 
             it("will resolve to false for a file with the specified path", () => {
                 return Directory.exists(__filename)
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
@@ -65,14 +66,60 @@ describe("Directory", () => {
 
     describe("instance", () => {
 
+
+        describe("toString", () => {
+
+
+            it("will return the string that was passed into the constructor", () => {
+                const path = "./foo/bar";
+                const dir1 = new Directory(path);
+                expect(dir1.toString()).toEqual(path);
+            });
+
+
+        });
+
+
+        describe("equals()", () => {
+
+
+            it("will return true for 2 directories that are equal", () => {
+                const dir1 = new Directory(__dirname);
+                const dir2 = new Directory(__dirname);
+
+                expect(dir1.equals(dir2)).toBeTruthy();
+            });
+
+
+            it("will return false for 2 different directories", () => {
+                const dir1 = new Directory(__dirname);
+                const dir2 = new Directory(path.join(__dirname, ".."));
+
+                expect(dir1.equals(dir2)).toBeFalsy();
+            });
+
+
+            it("will return false for two directories named the same but in different folders", () => {
+                resetTmpFolder();
+
+                const dir1 = new Directory(path.join(tmpDir.absPath(), "foo", "dir"));
+                const dir2 = new Directory(path.join(tmpDir.absPath(), "bar", "dir"));
+
+                expect(dir1.equals(dir2)).toBeFalsy();
+            });
+
+
+        });
+
+
         describe("exists()", () => {
 
 
-            it("will resolve to true for an existing directory", () => {
+            it("will resolve to a truthy fs.Stats object for an existing directory", () => {
                 const dir = new Directory(__dirname);
                 return dir.exists()
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeTruthy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeTruthy();
                 });
             });
 
@@ -80,8 +127,8 @@ describe("Directory", () => {
             it("will resolve to false for a directory that does not exist", () => {
                 const dir = new Directory(path.join(__dirname, "xyzzy"));
                 return dir.exists()
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
@@ -89,8 +136,8 @@ describe("Directory", () => {
             it("will resolve to false for a file with the specified path", () => {
                 const dir = new Directory(__filename);
                 return dir.exists()
-                .then((isDirectory: boolean) => {
-                    expect(isDirectory).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
@@ -100,7 +147,7 @@ describe("Directory", () => {
         describe("existsSync()", () => {
 
 
-            it("will return true for an existing directory", () => {
+            it("will return a truthy fs.Stats object for an existing directory", () => {
                 const dir = new Directory(__dirname);
                 expect(dir.existsSync()).toBeTruthy();
             });
@@ -564,26 +611,26 @@ describe("File", () => {
         describe("exists()", () => {
 
 
-            it("will resolve to true for an existing file", () => {
+            it("will resolve to a truthy stats object for an existing file", () => {
                 return File.exists(__filename)
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeTruthy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeTruthy();
                 });
             });
 
 
             it("will resolve to false for a file that does not exist", () => {
                 return File.exists(path.join(__dirname, "xyzzy.txt"))
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
 
             it("will resolve to false for a directory with the specified path", () => {
                 return File.exists(__dirname)
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeFalsy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeFalsy();
                 });
             });
 
@@ -594,7 +641,7 @@ describe("File", () => {
         describe("existsSync()", () => {
 
 
-            it("will return true for an existing file", () => {
+            it("will return a truthy fs.Stats object for an existing file", () => {
                 expect(File.existsSync(__filename)).toBeTruthy();
             });
 
@@ -617,14 +664,59 @@ describe("File", () => {
     describe("instance", () => {
 
 
+        describe("toString", () => {
+
+
+            it("will return the string that was passed into the constructor", () => {
+                const path = "./foo/bar.txt";
+                const file1 = new File(path);
+                expect(file1.toString()).toEqual(path);
+            });
+
+
+        });
+
+
+        describe("equals()", () => {
+
+
+            it("will return true for 2 files that are equal", () => {
+                const file1 = new File(__filename);
+                const file2 = new File(__filename);
+
+                expect(file1.equals(file2)).toBeTruthy();
+            });
+
+
+            it("will return false for 2 different files", () => {
+                const file1 = new File(path.join(".", "foo.txt"));
+                const file2 = new File(path.join(".", "bar.txt"));
+
+                expect(file1.equals(file2)).toBeFalsy();
+            });
+
+
+            it("will return false for two files named the same but in different folders", () => {
+                resetTmpFolder();
+
+                const file1 = new File(path.join(tmpDir.absPath(), "foo", "a.txt"));
+                const file2 = new File(path.join(tmpDir.absPath(), "bar", "a.txt"));
+
+                expect(file1.equals(file2)).toBeFalsy();
+            });
+
+
+        });
+
+
         describe("exists()", () => {
 
 
-            it("will resolve to true for an existing file", () => {
+            it("will resolve to a Stats object for an existing file", () => {
                 const file = new File(__filename);
                 return file.exists()
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeTruthy();
+                .then((stats: fs.Stats | false) => {
+                    expect(stats).toBeTruthy();
                 });
             });
 
@@ -632,8 +724,8 @@ describe("File", () => {
             it("will resolve to false for a file that does not exist", () => {
                 const file = new File(path.join(__dirname, "xyzzy.txt"));
                 return file.exists()
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeFalsy();
+                .then((result: fs.Stats | false) => {
+                    expect(result).toBeFalsy();
                 });
             });
 
@@ -641,8 +733,8 @@ describe("File", () => {
             it("will resolve to false for a directory with the specified path", () => {
                 const file = new File(__dirname);
                 return file.exists()
-                .then((isFile: boolean) => {
-                    expect(isFile).toBeFalsy();
+                .then((result: fs.Stats | false) => {
+                    expect(result).toBeFalsy();
                 });
             });
 
@@ -653,7 +745,7 @@ describe("File", () => {
         describe("existsSync()", () => {
 
 
-            it("will return true for an existing file", () => {
+            it("will return a truthy fs.Stats object for an existing file", () => {
                 expect(new File(__filename).existsSync()).toBeTruthy();
             });
 

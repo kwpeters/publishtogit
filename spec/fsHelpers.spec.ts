@@ -257,8 +257,7 @@ describe("Directory", () => {
 
                 return dir.empty()
                 .then(() => {
-                    // TODO: Create exists() existsSync *instance* methods.
-                    expect(Directory.existsSync(dir.absPath())).toBeTruthy();
+                    expect(dir.existsSync()).toBeTruthy();
                 });
             });
 
@@ -275,10 +274,10 @@ describe("Directory", () => {
 
                 return tmpDir.empty()
                 .then(() => {
-                    expect(Directory.existsSync(tmpDir.absPath())).toBeTruthy();  // TODO: Create exists() existsSync *instance* methods.
-                    expect(File.existsSync(fileA.absPath())).toBeFalsy();         // TODO: Create exists() existsSync *instance* methods.
-                    expect(File.existsSync(fileB.absPath())).toBeFalsy();         // TODO: Create exists() existsSync *instance* methods.
-                    expect(File.existsSync(fileC.absPath())).toBeFalsy();         // TODO: Create exists() existsSync *instance* methods.
+                    expect(tmpDir.existsSync()).toBeTruthy();
+                    expect(fileA.existsSync()).toBeFalsy();
+                    expect(fileB.existsSync()).toBeFalsy();
+                    expect(fileC.existsSync()).toBeFalsy();
                 });
             });
 
@@ -292,7 +291,7 @@ describe("Directory", () => {
             it("if the specified directory does not exist, will create all needed directories", () => {
                 const dir = new Directory(path.join(tmpDir.absPath(), "dir1", "dir2", "dir3"));
                 dir.emptySync();
-                expect(Directory.existsSync(dir.absPath())).toBeTruthy();
+                expect(dir.existsSync()).toBeTruthy();
             });
 
 
@@ -308,10 +307,10 @@ describe("Directory", () => {
 
                 tmpDir.emptySync();
 
-                expect(Directory.existsSync(tmpDir.absPath())).toBeTruthy();
-                expect(File.existsSync(fileA.absPath())).toBeFalsy();
-                expect(File.existsSync(fileB.absPath())).toBeFalsy();
-                expect(File.existsSync(fileC.absPath())).toBeFalsy();
+                expect(tmpDir.existsSync()).toBeTruthy();
+                expect(fileA.existsSync()).toBeFalsy();
+                expect(fileB.existsSync()).toBeFalsy();
+                expect(fileC.existsSync()).toBeFalsy();
             });
 
 
@@ -333,7 +332,7 @@ describe("Directory", () => {
 
                 return testDir.delete()
                 .then(() => {
-                    expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
+                    expect(testDir.existsSync()).toBeFalsy();
                 });
             });
 
@@ -365,7 +364,7 @@ describe("Directory", () => {
                 testSubdir.ensureExistsSync();
 
                 testDir.deleteSync();
-                expect(Directory.existsSync(testDir.absPath())).toBeFalsy();
+                expect(testDir.existsSync()).toBeFalsy();
             });
 
 
@@ -679,11 +678,11 @@ describe("File", () => {
                 const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
 
                 writeFileSync(fileA.absPath(), "This is file A");
-                expect(File.existsSync(fileA.absPath())).toBeTruthy();
+                expect(fileA.existsSync()).toBeTruthy();
 
                 return fileA.delete()
                 .then(() => {
-                    expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                    expect(fileA.existsSync()).toBeFalsy();
                 });
 
             });
@@ -692,7 +691,7 @@ describe("File", () => {
             it("will resolve when the specified file does not exist", (done) => {
                 const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
 
-                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                expect(fileA.existsSync()).toBeFalsy();
 
                 return fileA.delete()
                 .then(() => {
@@ -711,22 +710,20 @@ describe("File", () => {
                 const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
                 writeFileSync(fileA.absPath(), "This is file A");
 
-                expect(File.existsSync(fileA.absPath())).toBeTruthy();
+                expect(fileA.existsSync()).toBeTruthy();
 
                 fileA.deleteSync();
 
-                // TODO: Once I have an instance version of exists() and existsSync(),
-                // search for exists.*absPath and update all occurrences.
-                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                expect(fileA.existsSync()).toBeFalsy();
             });
 
 
             it("will just return when the specified file does not exist", () => {
                 const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
 
-                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                expect(fileA.existsSync()).toBeFalsy();
                 fileA.deleteSync();
-                expect(File.existsSync(fileA.absPath())).toBeFalsy();
+                expect(fileA.existsSync()).toBeFalsy();
             });
 
 

@@ -452,10 +452,6 @@ describe("File", () => {
             });
 
 
-            ////////////////////////////////////////////////////////////////////////////////
-            // LEFT OFF HERE: Convert the following tests to use copySync() and be synchronous
-            ////////////////////////////////////////////////////////////////////////////////
-
             it("will rename the file when a directory and filename is specified", () => {
                 const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
                 srcFile.writeSync("123");

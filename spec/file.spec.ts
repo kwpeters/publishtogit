@@ -281,7 +281,7 @@ describe("File", () => {
         });
 
 
-        describe("copy", () => {
+        describe("copy()", () => {
 
 
             beforeEach(() => {
@@ -302,7 +302,6 @@ describe("File", () => {
                     expect(dstFile.readSync()).toEqual("abc");
                     done();
                 });
-
             });
 
 
@@ -552,6 +551,305 @@ describe("File", () => {
                     }
 
                     expect(dstStats.atime.valueOf() - srcStats.atime.valueOf()).toBeLessThan(1000);
+                    expect(dstStats.mtime.valueOf() - srcStats.mtime.valueOf()).toBeLessThan(1000);
+                    done();
+
+                }, 2000);
+            });
+
+        });
+
+
+        describe("move()", () => {
+
+
+            beforeEach(() => {
+                tmpDir.emptySync();
+            });
+
+
+            it("will move the file to the specified destination directory", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.move(dstDir)
+                .then((dstFile) => {
+                    expect(srcFile.existsSync()).toBeFalsy();
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "file.txt"));
+                    expect(dstFile.readSync()).toEqual("abc");
+                    done();
+                });
+            });
+
+
+            it("will rename the file when a directory and filename is specified", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("123");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.move(dstDir, "dest.txt")
+                .then((dstFile) => {
+                    expect(srcFile.existsSync()).toBeFalsy();
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "dest.txt"));
+                    expect(dstFile.readSync()).toEqual("123");
+                    done();
+                });
+            });
+
+
+            it("will rename the file when a destination File is specified", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("def");
+
+                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+
+                srcFile.move(dstFile)
+                .then((dstFile) => {
+                    expect(srcFile.existsSync()).toBeFalsy();
+                    expect(dstFile.existsSync()).toBeTruthy();
+                    expect(dstFile.absPath()).toEqual(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                    expect(dstFile.readSync()).toEqual("def");
+                    done();
+                });
+            });
+
+
+            it("will reject if the source file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.move(dstDir)
+                .catch(() => {
+                    done();
+                });
+            });
+
+
+            it("will not create a destination directory if the soure file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.move(dstDir)
+                .catch(() => {
+                    expect(dstDir.existsSync()).toBeFalsy();
+                    done();
+                });
+            });
+
+
+            it("will not create a destination file if the source file does not exist", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                srcFile.move(dstDir)
+                .catch(() => {
+                    const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                    expect(dstFile.existsSync()).toBeFalsy();
+                    done();
+                });
+            });
+
+
+            it("will overwrite an existing destination file", (done) => {
+                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                oldDstFile.writeSync("old");
+
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                srcFile.writeSync("new");
+
+                srcFile.move(oldDstFile)
+                .then((newDstFile) => {
+                    expect(srcFile.existsSync()).toBeFalsy();
+                    expect(newDstFile.existsSync()).toBeTruthy();
+                    expect(newDstFile.absPath()).toEqual(oldDstFile.absPath());
+                    expect(newDstFile.readSync()).toEqual("new");
+                    done();
+                });
+            });
+
+
+            it("will copy the atime and mtime from the source file", (done) => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+
+                // There is a maximum possible error of 1 second when
+                // copying the source's timestamps to the destination.
+                // To make sure the timestamps are being copied, we are
+                // waiting for 2 seconds before doing the copy and then
+                // making sure that the timestamp deltas are within the
+                // allowable 1 second.
+                setTimeout(() => {
+                    // We need to get the source file's timestamps now, because
+                    // after the move the source file will no longer exist.
+                    const srcStats = srcFile.existsSync();
+
+                    srcFile.move(dstFile)
+                    .then(() => {
+
+                        const dstStats = dstFile.existsSync();
+
+                        if (!srcStats || !dstStats)
+                        {
+                            fail();
+                            return;
+                        }
+
+                        // The destination file will have a last access time
+                        // (atime) close to now, because it was copied from the
+                        // source file and the source file's atime was updated
+                        // during the copy operation.  Because the destination
+                        // file's atime could be up to 1 second before the
+                        // source file's, we will allow for a little over 1
+                        // second.
+                        expect(Date.now() - dstStats.atime.valueOf()).toBeLessThan(1100);
+                        expect(dstStats.mtime.valueOf() - srcStats.mtime.valueOf()).toBeLessThan(1000);
+                        done();
+                    });
+                }, 2000);
+            });
+        });
+
+
+        describe("moveSync()", () => {
+
+
+            beforeEach(() => {
+                tmpDir.emptySync();
+            });
+
+
+            it("will move the file to the specified destination directory", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                const dstFile = srcFile.moveSync(dstDir)
+
+                expect(srcFile.existsSync()).toBeFalsy();
+                expect(dstFile.existsSync()).toBeTruthy();
+                expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "file.txt"));
+                expect(dstFile.readSync()).toEqual("abc");
+            });
+
+
+            it("will rename the file when a directory and filename is specified", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("123");
+
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                const dstFile = srcFile.moveSync(dstDir, "dest.txt");
+
+                expect(srcFile.existsSync()).toBeFalsy();
+                expect(dstFile.existsSync()).toBeTruthy();
+                expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "dest.txt"));
+                expect(dstFile.readSync()).toEqual("123");
+            });
+
+
+            it("will rename the file when a destination File is specified", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("def");
+
+                let dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+
+                dstFile = srcFile.moveSync(dstFile);
+
+                expect(srcFile.existsSync()).toBeFalsy();
+                expect(dstFile.existsSync()).toBeTruthy();
+                expect(dstFile.absPath()).toEqual(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                expect(dstFile.readSync()).toEqual("def");
+            });
+
+
+            it("will throw if the source file does not exist", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                expect(() => {
+                    srcFile.moveSync(dstDir);
+                }).toThrow();
+            });
+
+
+            it("will not create a destination directory if the source file does not exist", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                expect(() => { srcFile.moveSync(dstDir); }).toThrow();
+                expect(dstDir.existsSync()).toBeFalsy();
+            });
+
+
+            it("will not create a destination file if the source file does not exist", () => {
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
+                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+
+                expect(() => { srcFile.moveSync(dstDir); }).toThrow();
+                const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                expect(dstFile.existsSync()).toBeFalsy();
+            });
+
+
+            it("will overwrite an existing desintation file", () => {
+                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                oldDstFile.writeSync("old");
+
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                srcFile.writeSync("new");
+
+                const newDstFile = srcFile.moveSync(oldDstFile)
+                expect(srcFile.existsSync()).toBeFalsy();
+                expect(newDstFile.existsSync()).toBeTruthy();
+                expect(newDstFile.absPath()).toEqual(oldDstFile.absPath());
+                expect(newDstFile.readSync()).toEqual("new");
+            });
+
+
+            it("will copy the atime and mtime from the source file", (done) => {
+
+                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                srcFile.writeSync("abc");
+
+                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+
+                // There is a maximum possible error of 1 second when
+                // copying the source's timestamps to the destination.
+                // To make sure the timestamps are being copied, we are
+                // waiting for 2 seconds before doing the copy and then
+                // making sure that the timestamp deltas are within the
+                // allowable 1 second.
+                setTimeout(() => {
+                    // We need to get the source file's timestamps now, because
+                    // after the move the source file will no longer exist.
+                    const srcStats = srcFile.existsSync();
+
+                    srcFile.moveSync(dstFile);
+
+                    const dstStats = dstFile.existsSync();
+
+                    if (!srcStats || !dstStats)
+                    {
+                        fail();
+                        return;
+                    }
+
+                    // The destination file will have a last access time
+                    // (atime) close to now, because it was copied from the
+                    // source file and the source file's atime was updated
+                    // during the copy operation.  Because the destination
+                    // file's atime could be up to 1 second before the
+                    // source file's, we will allow for a little over 1
+                    // second.
+                    expect(Date.now() - dstStats.atime.valueOf()).toBeLessThan(1100);
                     expect(dstStats.mtime.valueOf() - srcStats.mtime.valueOf()).toBeLessThan(1000);
                     done();
 

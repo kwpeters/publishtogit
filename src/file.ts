@@ -194,7 +194,9 @@ export class File
             // The caller has specified the destination directory and file
             // name in the form of a File.
             destFile = dstDirOrFile;
-        } else {           // dstDirOrFile instanceof Directory
+        }
+        else
+        {           // dstDirOrFile instanceof Directory
             // The caller has specified the destination directory and
             // optionally a new file name.
             if (dstFileName === undefined) {
@@ -243,7 +245,7 @@ export class File
      * @param dstFileName - When destDirOrFile is a Directory,
      * optionally specifies the destination file name.  If omitted, the
      * destination file name will be the same as the source (this File).
-     * @return A Promise for a File representing the destination file.
+     * @return A File representing the destination file.
      */
     public copySync(dstDirOrFile: Directory | File, dstFileName?: string): File
     {
@@ -290,8 +292,137 @@ export class File
     }
 
 
-    // TODO: move()
-    // TODO: moveSync()
+    /**
+     * Moves this file to the specified destination.  Preserves the file's last
+     * accessed time (atime) and last modified time (mtime).
+     * @param dstDirOrFile - If a File, specifies the
+     * destination directory and file name.  If a directory, specifies only the
+     * destination directory and destFileName specifies the destination file
+     * name.
+     * @param dstFileName - When destDirOrFile is a Directory,
+     * optionally specifies the destination file name.  If omitted, the
+     * destination file name will be the same as the source (this File).
+     * @return A Promise for a File representing the destination file.
+     */
+    public move(dstDirOrFile: Directory | File, dstFileName?: string): Promise<File>
+    {
+        //
+        // Based on the parameters, figure out what the destination file path is
+        // going to be.
+        //
+        let destFile: File;
+
+        if (dstDirOrFile instanceof File) {
+            // The caller has specified the destination directory and file
+            // name in the form of a File.
+            destFile = dstDirOrFile;
+        }
+        else
+        {           // dstDirOrFile instanceof Directory
+            // The caller has specified the destination directory and
+            // optionally a new file name.
+            if (dstFileName === undefined) {
+                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+            } else {
+                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+            }
+        }
+
+        //
+        // Before we do anything, make sure that the source file exists.  If it
+        // doesn't we should get out before we create the destination file.
+        //
+        return this.exists()
+        .then((stats) => {
+            if (!stats)
+            {
+                throw new Error(`Source file ${this._filePath} does not exist.`);
+            }
+        })
+        .then(() => {
+            //
+            // Make sure the directory for the destination file exists.
+            //
+            return destFile.directory.ensureExists();
+        })
+        .then(() => {
+            //
+            // Do the copy.
+            //
+            return copyFile(this._filePath, destFile.toString(), {preserveTimestamps: true});
+        })
+        .then(() => {
+            //
+            // Delete the source file.
+            //
+            return this.delete();
+        })
+        .then(() => {
+            return destFile;
+        });
+    }
+
+
+    /**
+     * Moves this file to the specified destination.  Preserves the file's last
+     * accessed time (atime) and last modified time (mtime).
+     * @param dstDirOrFile - If a File, specifies the
+     * destination directory and file name.  If a directory, specifies only the
+     * destination directory and destFileName specifies the destination file
+     * name.
+     * @param dstFileName - When destDirOrFile is a Directory,
+     * optionally specifies the destination file name.  If omitted, the
+     * destination file name will be the same as the source (this File).
+     * @return A File representing the destination file.
+     */
+    public moveSync(dstDirOrFile: Directory | File, dstFileName?: string): File
+    {
+        //
+        // Based on the parameters, figure out what the destination file path is
+        // going to be.
+        //
+        let destFile: File;
+
+        if (dstDirOrFile instanceof File) {
+            // The caller has specified the destination directory and file
+            // name in the form of a File.
+            destFile = dstDirOrFile;
+        } else {           // dstDirOrFile instanceof Directory
+                           // The caller has specified the destination directory and
+                           // optionally a new file name.
+            if (dstFileName === undefined) {
+                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+            } else {
+                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+            }
+        }
+
+        //
+        // Before we do anything, make sure that the source file exists.  If it
+        // doesn't we should get out before we create the destination file.
+        //
+        if (!this.existsSync())
+        {
+            throw new Error(`Source file ${this._filePath} does not exist.`);
+        }
+
+        //
+        // Make sure the directory for the destination file exists.
+        //
+        destFile.directory.ensureExistsSync();
+
+        //
+        // Do the copy.
+        //
+        copyFileSync(this._filePath, destFile.toString(), {preserveTimestamps: true});
+
+        //
+        // Delete the source file.
+        //
+        this.deleteSync();
+
+        return destFile;
+    }
 
 
     /**

@@ -171,7 +171,8 @@ export class File
 
 
     /**
-     * Copies this file to the specified destination.
+     * Copies this file to the specified destination.  Preserves the file's last
+     * accessed time (atime) and last modified time (mtime).
      * @param dstDirOrFile - If a File, specifies the
      * destination directory and file name.  If a directory, specifies only the
      * destination directory and destFileName specifies the destination file
@@ -232,7 +233,63 @@ export class File
     }
 
 
-    // TODO: copySync()
+    /**
+     * Copies this file to the specified destination.  Preserves the file's last
+     * accessed time (atime) and last modified time (mtime).
+     * @param dstDirOrFile - If a File, specifies the
+     * destination directory and file name.  If a directory, specifies only the
+     * destination directory and destFileName specifies the destination file
+     * name.
+     * @param dstFileName - When destDirOrFile is a Directory,
+     * optionally specifies the destination file name.  If omitted, the
+     * destination file name will be the same as the source (this File).
+     * @return A Promise for a File representing the destination file.
+     */
+    public copySync(dstDirOrFile: Directory | File, dstFileName?: string): File
+    {
+        //
+        // Based on the parameters, figure out what the destination file path is
+        // going to be.
+        //
+        let destFile: File;
+
+        if (dstDirOrFile instanceof File) {
+            // The caller has specified the destination directory and file
+            // name in the form of a File.
+            destFile = dstDirOrFile;
+        } else {           // dstDirOrFile instanceof Directory
+            // The caller has specified the destination directory and
+            // optionally a new file name.
+            if (dstFileName === undefined) {
+                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+            } else {
+                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+            }
+        }
+
+        //
+        // Before we do anything, make sure that the source file exists.  If it
+        // doesn't we should get out before we create the destination file.
+        //
+        if (!this.existsSync())
+        {
+            throw new Error(`Source file ${this._filePath} does not exist.`);
+        }
+
+        //
+        // Make sure the directory for the destination file exists.
+        //
+        destFile.directory.ensureExistsSync();
+
+        //
+        // Do the copy.
+        //
+        copyFileSync(this._filePath, destFile.toString(), {preserveTimestamps: true});
+
+        return destFile;
+    }
+
+
     // TODO: move()
     // TODO: moveSync()
 
@@ -310,7 +367,14 @@ export interface ICopyOptions
 }
 
 
-function copyFile(source: string, dest: string, options?: ICopyOptions): Promise<void>
+/**
+ * Copies a file.
+ * @param sourceFilePath - The path to the source file
+ * @param destFilePath - The path to the destination file
+ * @param options - Options for the copy operation
+ * @return A Promise that is resolved when the file has been copied.
+ */
+function copyFile(sourceFilePath: string, destFilePath: string, options?: ICopyOptions): Promise<void>
 {
     //
     // Design Note
@@ -322,10 +386,10 @@ function copyFile(source: string, dest: string, options?: ICopyOptions): Promise
 
     return new Promise<void>((resolve: () => void, reject: (err: any) => void) => {
 
-        const readStream = fs.createReadStream(source);
+        const readStream = fs.createReadStream(sourceFilePath);
         const readListenerTracker = new ListenerTracker(readStream);
 
-        const writeStream = fs.createWriteStream(dest);
+        const writeStream = fs.createWriteStream(destFilePath);
         const writeListenerTracker = new ListenerTracker(writeStream);
 
         readListenerTracker.on("error", (err) => {
@@ -355,7 +419,7 @@ function copyFile(source: string, dest: string, options?: ICopyOptions): Promise
             // The caller wants to preserve the source file's timestamps.  Copy
             // them to the destination file now.
             //
-            return statAsync(source)
+            return statAsync(sourceFilePath)
             .then((srcStats: fs.Stats) => {
                 //
                 // Note:  Setting the timestamps on dest requires us to specify
@@ -363,8 +427,27 @@ function copyFile(source: string, dest: string, options?: ICopyOptions): Promise
                 // by 1000 below and truncation happes, we are actually setting
                 // dest's timestamps *before* those of of source.
                 //
-                return utimesAsync(dest, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
+                return utimesAsync(destFilePath, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
             });
         }
     });
+}
+
+
+/**
+ * Copies a file synchronously.
+ * @param sourceFilePath - The path to the source file
+ * @param destFilePath - The path to the destination file
+ * @param options - Options for the copy operation
+ */
+function copyFileSync(sourceFilePath: string, destFilePath: string, options?: ICopyOptions): void
+{
+    const data: Buffer = fs.readFileSync(sourceFilePath);
+    fs.writeFileSync(destFilePath, data);
+
+    if (options && options.preserveTimestamps)
+    {
+        const srcStats = fs.statSync(sourceFilePath);
+        fs.utimesSync(destFilePath, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
+    }
 }

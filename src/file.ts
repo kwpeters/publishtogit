@@ -17,13 +17,13 @@ export class File
     //endregion
 
 
-    public static exists(filePath: string): Promise<fs.Stats | false>
+    public static exists(filePath: string): Promise<fs.Stats | undefined>
     {
         return new File(filePath).exists();
     }
 
 
-    public static existsSync(filePath: string): fs.Stats | false
+    public static existsSync(filePath: string): fs.Stats | undefined
     {
         return new File(filePath).existsSync();
     }
@@ -103,9 +103,9 @@ export class File
     }
 
 
-    public exists(): Promise<fs.Stats | false>
+    public exists(): Promise<fs.Stats | undefined>
     {
-        return new Promise<fs.Stats | false>((resolve: (result: fs.Stats | false) => void) => {
+        return new Promise<fs.Stats | undefined>((resolve: (result: fs.Stats | undefined) => void) => {
             fs.stat(this._filePath, (err: any, stats: fs.Stats) => {
 
                 if (!err && stats.isFile())
@@ -114,7 +114,7 @@ export class File
                 }
                 else
                 {
-                    resolve(false);
+                    resolve(undefined);
                 }
 
             });
@@ -122,16 +122,16 @@ export class File
     }
 
 
-    public existsSync(): fs.Stats | false
+    public existsSync(): fs.Stats | undefined
     {
         try {
             const stats = fs.statSync(this._filePath);
-            return stats.isFile() ? stats : false;
+            return stats.isFile() ? stats : undefined;
         }
         catch (err) {
             if (err.code === "ENOENT")
             {
-                return false;
+                return undefined;
             }
             else
             {
@@ -150,7 +150,7 @@ export class File
     public delete(): Promise<void>
     {
         return this.exists()
-        .then((stats: fs.Stats | false) => {
+        .then((stats) => {
             if (!stats) {
                 return Promise.resolve();
             } else {
@@ -209,7 +209,7 @@ export class File
         // doesn't we should get out before we create the destination file.
         //
         return this.exists()
-        .then((stats: fs.Stats | false) => {
+        .then((stats) => {
             if (!stats)
             {
                 throw new Error(`Source file ${this._filePath} does not exist.`);

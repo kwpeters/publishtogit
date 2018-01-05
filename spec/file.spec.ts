@@ -16,7 +16,7 @@ describe("File", () => {
 
             it("will resolve to a truthy stats object for an existing file", () => {
                 return File.exists(__filename)
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeTruthy();
                 });
             });
@@ -24,7 +24,7 @@ describe("File", () => {
 
             it("will resolve to false for a file that does not exist", () => {
                 return File.exists(path.join(__dirname, "xyzzy.txt"))
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });
@@ -32,7 +32,7 @@ describe("File", () => {
 
             it("will resolve to false for a directory with the specified path", () => {
                 return File.exists(__dirname)
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });
@@ -177,7 +177,7 @@ describe("File", () => {
             it("will resolve to a Stats object for an existing file", () => {
                 const file = new File(__filename);
                 return file.exists()
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeTruthy();
                 });
             });
@@ -186,7 +186,7 @@ describe("File", () => {
             it("will resolve to false for a file that does not exist", () => {
                 const file = new File(path.join(__dirname, "xyzzy.txt"));
                 return file.exists()
-                .then((result: fs.Stats | false) => {
+                .then((result) => {
                     expect(result).toBeFalsy();
                 });
             });
@@ -195,7 +195,7 @@ describe("File", () => {
             it("will resolve to false for a directory with the specified path", () => {
                 const file = new File(__dirname);
                 return file.exists()
-                .then((result: fs.Stats | false) => {
+                .then((result) => {
                     expect(result).toBeFalsy();
                 });
             });

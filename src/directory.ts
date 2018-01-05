@@ -24,13 +24,13 @@ export class Directory
     //endregion
 
 
-    public static exists(dirPath: string): Promise<fs.Stats | false>
+    public static exists(dirPath: string): Promise<fs.Stats | undefined>
     {
         return new Directory(dirPath).exists();
     }
 
 
-    public static existsSync(dirPath: string): fs.Stats | false
+    public static existsSync(dirPath: string): fs.Stats | undefined
     {
         return new Directory(dirPath).existsSync();
     }
@@ -60,9 +60,9 @@ export class Directory
     }
 
 
-    public exists(): Promise<fs.Stats | false>
+    public exists(): Promise<fs.Stats | undefined>
     {
-        return new Promise<fs.Stats | false>((resolve: (result: fs.Stats | false) => void) => {
+        return new Promise<fs.Stats | undefined>((resolve: (result: fs.Stats | undefined) => void) => {
             fs.stat(this._dirPath, (err: any, stats: fs.Stats) => {
 
                 if (!err && stats.isDirectory())
@@ -71,7 +71,7 @@ export class Directory
                 }
                 else
                 {
-                    resolve(false);
+                    resolve(undefined);
                 }
 
             });
@@ -79,16 +79,16 @@ export class Directory
     }
 
 
-    public existsSync(): fs.Stats | false
+    public existsSync(): fs.Stats | undefined
     {
         try {
             const stats = fs.statSync(this._dirPath);
-            return stats.isDirectory() ? stats : false;
+            return stats.isDirectory() ? stats : undefined;
         }
         catch (err) {
             if (err.code === "ENOENT")
             {
-                return false;
+                return undefined;
             }
             else
             {
@@ -117,11 +117,11 @@ export class Directory
     public ensureExists(): Promise<void>
     {
         return this.exists()
-        .then((stats: fs.Stats | false) =>
+        .then((stats) =>
         {
             if (stats)
             {
-                return true;
+                return;
             }
             else
             {
@@ -253,11 +253,11 @@ export class Directory
     public delete(): Promise<void>
     {
         return this.exists()
-        .then((stats: fs.Stats | false) => {
+        .then((stats) => {
             if (!stats)
             {
                 // The specified directory does not exist.  Do nothing.
-                return Promise.resolve();
+                return;
             }
             else
             {

@@ -16,7 +16,7 @@ describe("Directory", () => {
 
             it("will resolve to a truthy fs.Stats object for an existing directory", () => {
                 return Directory.exists(__dirname)
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeTruthy();
                 });
             });
@@ -24,7 +24,7 @@ describe("Directory", () => {
 
             it("will resolve to false for a directory that does not exist", () => {
                 return Directory.exists(path.join(__dirname, "xyzzy"))
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });
@@ -32,7 +32,7 @@ describe("Directory", () => {
 
             it("will resolve to false for a file with the specified path", () => {
                 return Directory.exists(__filename)
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });
@@ -118,7 +118,7 @@ describe("Directory", () => {
             it("will resolve to a truthy fs.Stats object for an existing directory", () => {
                 const dir = new Directory(__dirname);
                 return dir.exists()
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeTruthy();
                 });
             });
@@ -127,7 +127,7 @@ describe("Directory", () => {
             it("will resolve to false for a directory that does not exist", () => {
                 const dir = new Directory(path.join(__dirname, "xyzzy"));
                 return dir.exists()
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });
@@ -136,7 +136,7 @@ describe("Directory", () => {
             it("will resolve to false for a file with the specified path", () => {
                 const dir = new Directory(__filename);
                 return dir.exists()
-                .then((stats: fs.Stats | false) => {
+                .then((stats) => {
                     expect(stats).toBeFalsy();
                 });
             });

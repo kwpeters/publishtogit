@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as path from "path";
 import {tmpDir} from "./specHelpers";
 import {File} from "../src/file";
@@ -443,7 +442,7 @@ describe("File", () => {
 
                 const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
 
-                const dstFile = srcFile.copySync(dstDir)
+                const dstFile = srcFile.copySync(dstDir);
 
                 expect(dstFile.existsSync()).toBeTruthy();
                 expect(dstFile.absPath()).toEqual(path.join(dstDir.absPath(), "file.txt"));
@@ -515,7 +514,7 @@ describe("File", () => {
                 const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
                 srcFile.writeSync("new");
 
-                const newDstFile = srcFile.copySync(oldDstFile)
+                const newDstFile = srcFile.copySync(oldDstFile);
                 expect(newDstFile.existsSync()).toBeTruthy();
                 expect(newDstFile.absPath()).toEqual(oldDstFile.absPath());
                 expect(newDstFile.readSync()).toEqual("new");
@@ -731,7 +730,7 @@ describe("File", () => {
 
                 const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
 
-                const dstFile = srcFile.moveSync(dstDir)
+                const dstFile = srcFile.moveSync(dstDir);
 
                 expect(srcFile.existsSync()).toBeFalsy();
                 expect(dstFile.existsSync()).toBeTruthy();
@@ -806,7 +805,7 @@ describe("File", () => {
                 const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
                 srcFile.writeSync("new");
 
-                const newDstFile = srcFile.moveSync(oldDstFile)
+                const newDstFile = srcFile.moveSync(oldDstFile);
                 expect(srcFile.existsSync()).toBeFalsy();
                 expect(newDstFile.existsSync()).toBeTruthy();
                 expect(newDstFile.absPath()).toEqual(oldDstFile.absPath());
@@ -929,7 +928,7 @@ describe("File", () => {
                 file.read()
                 .then((text) => {
                     expect(text).toEqual("12345");
-                    done()
+                    done();
                 });
             });
 

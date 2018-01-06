@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import {tmpDir} from "./specHelpers";
 import * as path from "path";
 import {File} from "../src/file";

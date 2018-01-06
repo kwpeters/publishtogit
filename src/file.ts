@@ -473,8 +473,8 @@ export class File
                 }
 
                 resolve(data);
-            })
-        })
+            });
+        });
     }
 
 
@@ -558,7 +558,7 @@ function copyFile(sourceFilePath: string, destFilePath: string, options?: ICopyO
                 // by 1000 below and truncation happes, we are actually setting
                 // dest's timestamps *before* those of of source.
                 //
-                return utimesAsync(destFilePath, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
+                return utimesAsync(destFilePath, srcStats.atime.valueOf() / 1000, srcStats.mtime.valueOf() / 1000);
             });
         }
     });
@@ -579,6 +579,6 @@ function copyFileSync(sourceFilePath: string, destFilePath: string, options?: IC
     if (options && options.preserveTimestamps)
     {
         const srcStats = fs.statSync(sourceFilePath);
-        fs.utimesSync(destFilePath, srcStats.atime.valueOf()/1000, srcStats.mtime.valueOf()/1000);
+        fs.utimesSync(destFilePath, srcStats.atime.valueOf() / 1000, srcStats.mtime.valueOf() / 1000);
     }
 }

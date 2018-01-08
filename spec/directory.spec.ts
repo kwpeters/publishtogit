@@ -665,7 +665,7 @@ describe("Directory", () => {
                     expect(new Directory(destDir, "src", "dirA", "dirB").existsSync()).toBeTruthy();
                     expect(new File(     destDir, "src", "dirA", "dirB", "b.txt").existsSync()).toBeTruthy();
                     expect(new Directory(destDir, "src", "dirA", "dirC").existsSync()).toBeTruthy();
-                    done()
+                    done();
                 });
             });
 
@@ -709,7 +709,7 @@ describe("Directory", () => {
                     expect(new Directory(destDir, "dirA", "dirB").existsSync()).toBeTruthy();
                     expect(new File(     destDir, "dirA", "dirB", "b.txt").existsSync()).toBeTruthy();
                     expect(new Directory(destDir, "dirA", "dirC").existsSync()).toBeTruthy();
-                    done()
+                    done();
                 });
             });
 

@@ -33,29 +33,49 @@ function main(): void
 
     tmpDir.ensureExists()
     .then(() => {
-        //
         // Delete the temporary publishing directory if it already exists.
-        //
         return publishRepoDir.delete();
     })
     .then(() => {
-        //
         // Clone the publishing repo.
-        //
         return GitRepo.clone(publishConfig.publishRepository, tmpDir);
     })
     .then((repo) => {
         publishRepo = repo;
+        // Get the tags in the repo so we can check if there is already one with
+        // the version number.
+        return repo.hasTag(packageConfig.version);
+    })
+    .then((hasTag) => {
+        if (hasTag)
+        {
+            throw new Error(`The publish repo already has the tag ${packageConfig.version}.  Publish aborted.`);
+        }
 
-        //
         // Delete all files in the publish repo.
-        //
         return deleteTrackedFiles(publishRepo);
     })
     .then(() => {
         const pkg = new NodePackage(srcDir);
         return pkg.publish(publishRepoDir, false);
+    })
+    .then(() => {
+        return publishRepo.stageAll();
     });
+
+
+    // TODO: Drop a label
+    // publishRepo.createTag()
+
+
+    // TODO: Tags are not pushed by default.  You must push them like branches.
+    // publishRepo.pushTag()
+
+
+    // TODO: Print a message about how to include the project in another
+    // project
+    // "enipjs-core": "git+https://mft.ra-int.com/gitlab/app-platform/enipjs-core.git#59f09b7"
+    // or how to install globally.
 }
 
 

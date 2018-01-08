@@ -246,4 +246,26 @@ export class GitRepo
             return this;
         });
     }
+
+
+    public pushTag(tagName: string, remoteName: string): Promise<GitRepo>
+    {
+        return spawn("git", ["push", remoteName, tagName], this._dir.toString())
+        .then(() => {
+            return this;
+        });
+    }
+
+
+    public stageAll(): Promise<GitRepo>
+    {
+        return spawn("git", ["add", "."], this._dir.toString())
+        .then(() => {
+            return this;
+        });
+    }
+
+
+    // TODO: To get the staged files:
+    // git diff --name-only --cached
 }

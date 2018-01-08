@@ -23,8 +23,8 @@ function main(): void
         return;
     }
 
-    const tmpDir = new Directory(path.join(os.homedir(), ".publish-to-git", "tmp"));
-    const publishRepoDir = new Directory(path.join(tmpDir.absPath(), gitUrlToProjectName(publishConfig.publishRepository)));
+    const tmpDir = new Directory(os.homedir(), ".publish-to-git", "tmp");
+    const publishRepoDir = new Directory(tmpDir, gitUrlToProjectName(publishConfig.publishRepository));
 
     let publishRepo: GitRepo;
 

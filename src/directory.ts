@@ -2,6 +2,7 @@ import * as fs from "fs";
 import {File} from "./file";
 import * as path from "path";
 import {promisify1, sequence} from "./promiseHelpers";
+import {PathPart, reducePathParts} from "./pathHelpers";
 
 
 const unlinkAsync = promisify1<void, string>(fs.unlink);
@@ -36,9 +37,15 @@ export class Directory
     }
 
 
-    public constructor(dirPath: string)
+    public constructor(pathPart: PathPart, ...pathParts: PathPart[])
     {
-        this._dirPath = dirPath;
+        const allParts: PathPart[] = [pathPart].concat(pathParts);
+        this._dirPath = reducePathParts(allParts);
+
+        // Remove trailing directory separator characters.
+        while (this._dirPath.endsWith(path.sep)) {
+            this._dirPath = this._dirPath.slice(0, -1);
+        }
     }
 
 

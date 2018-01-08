@@ -71,7 +71,7 @@ describe("File", () => {
 
 
             it("will give the correct parts of a normal file path", () => {
-                const file1: File = new File(path.join("..", "tmp", "bar", "baz.txt"));
+                const file1: File = new File("..", "tmp", "bar", "baz.txt");
                 expect(file1.dirName).toEqual("../tmp/bar/");
                 expect(file1.baseName).toEqual("baz");
                 expect(file1.fileName).toEqual("baz.txt");
@@ -117,7 +117,7 @@ describe("File", () => {
 
             it("will return a Directory object representing the directory containing the file", () => {
                 const dir = new Directory("../foo/bar");
-                const file = new File(path.join(dir.toString(), "baz.txt"));
+                const file = new File(dir, "baz.txt");
                 expect(file.directory.toString()).toEqual(dir.toString());
             });
 
@@ -129,9 +129,8 @@ describe("File", () => {
 
 
             it("will return the string that was passed into the constructor", () => {
-                const path = "./foo/bar.txt";
-                const file1 = new File(path);
-                expect(file1.toString()).toEqual(path);
+                const file1 = new File("./foo/bar.txt");
+                expect(file1.toString()).toEqual("foo/bar.txt");
             });
 
 
@@ -150,8 +149,8 @@ describe("File", () => {
 
 
             it("will return false for 2 different files", () => {
-                const file1 = new File(path.join(".", "foo.txt"));
-                const file2 = new File(path.join(".", "bar.txt"));
+                const file1 = new File(".", "foo.txt");
+                const file2 = new File(".", "bar.txt");
 
                 expect(file1.equals(file2)).toBeFalsy();
             });
@@ -160,8 +159,8 @@ describe("File", () => {
             it("will return false for two files named the same but in different folders", () => {
                 tmpDir.emptySync();
 
-                const file1 = new File(path.join(tmpDir.absPath(), "foo", "a.txt"));
-                const file2 = new File(path.join(tmpDir.absPath(), "bar", "a.txt"));
+                const file1 = new File(tmpDir, "foo", "a.txt");
+                const file2 = new File(tmpDir, "bar", "a.txt");
 
                 expect(file1.equals(file2)).toBeFalsy();
             });
@@ -183,7 +182,7 @@ describe("File", () => {
 
 
             it("will resolve to false for a file that does not exist", () => {
-                const file = new File(path.join(__dirname, "xyzzy.txt"));
+                const file = new File(__dirname, "xyzzy.txt");
                 return file.exists()
                 .then((result) => {
                     expect(result).toBeFalsy();
@@ -212,7 +211,7 @@ describe("File", () => {
 
 
             it("will return false for a file that does not exist", () => {
-                expect(new File(path.join(__dirname, "xyzzy.txt")).existsSync()).toBeFalsy();
+                expect(new File(__dirname, "xyzzy.txt").existsSync()).toBeFalsy();
             });
 
 
@@ -228,7 +227,7 @@ describe("File", () => {
 
 
             it("will delete the specified file", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
+                const fileA = new File(tmpDir, "a.txt");
                 fileA.writeSync("This is file A");
                 expect(fileA.existsSync()).toBeTruthy();
 
@@ -240,7 +239,7 @@ describe("File", () => {
 
 
             it("will resolve when the specified file does not exist", (done) => {
-                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+                const fileA = new File(tmpDir, "xyzzy.txt");
 
                 expect(fileA.existsSync()).toBeFalsy();
 
@@ -258,7 +257,7 @@ describe("File", () => {
 
 
             it("will delete the specified file", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
+                const fileA = new File(tmpDir, "a.txt");
                 fileA.writeSync("This is file A");
                 expect(fileA.existsSync()).toBeTruthy();
 
@@ -269,7 +268,7 @@ describe("File", () => {
 
 
             it("will just return when the specified file does not exist", () => {
-                const fileA = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+                const fileA = new File(tmpDir, "xyzzy.txt");
 
                 expect(fileA.existsSync()).toBeFalsy();
                 fileA.deleteSync();
@@ -289,10 +288,10 @@ describe("File", () => {
 
 
             it("will copy the file to the specified destination directory", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.copy(dstDir)
                 .then((dstFile) => {
@@ -305,10 +304,10 @@ describe("File", () => {
 
 
             it("will rename the file when a directory and filename is specified", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("123");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.copy(dstDir, "dest.txt")
                 .then((dstFile) => {
@@ -321,10 +320,10 @@ describe("File", () => {
 
 
             it("will rename the file when a destination File is specified", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("def");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                const dstFile = new File(tmpDir, "dst", "dest.txt");
 
                 srcFile.copy(dstFile)
                 .then((dstFile) => {
@@ -337,8 +336,8 @@ describe("File", () => {
 
 
             it("will reject if the source file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.copy(dstDir)
                 .catch(() => {
@@ -348,8 +347,8 @@ describe("File", () => {
 
 
             it("will not create a destination directory if the source file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.copy(dstDir)
                 .catch(() => {
@@ -360,12 +359,12 @@ describe("File", () => {
 
 
             it("will not create a destination file if the source file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.copy(dstDir)
                 .catch(() => {
-                    const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                    const dstFile = new File(dstDir, "xyzzy.txt");
                     expect(dstFile.existsSync()).toBeFalsy();
                     done();
                 });
@@ -373,10 +372,10 @@ describe("File", () => {
 
 
             it("will overwrite an existing desintation file", (done) => {
-                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                const oldDstFile = new File(tmpDir, "dst", "dst.txt");
                 oldDstFile.writeSync("old");
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                const srcFile = new File(tmpDir, "src", "src.txt");
                 srcFile.writeSync("new");
 
                 srcFile.copy(oldDstFile)
@@ -391,10 +390,10 @@ describe("File", () => {
 
             it("will copy the atime and mtime from the source file", (done) => {
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+                const dstFile = new File(tmpDir, "dst", "file.txt");
 
                 // There is a maximum possible error of 1 second when
                 // copying the source's timestamps to the destination.
@@ -437,10 +436,10 @@ describe("File", () => {
 
 
             it("will copy the file to the specified destination directory", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 const dstFile = srcFile.copySync(dstDir);
 
@@ -451,10 +450,10 @@ describe("File", () => {
 
 
             it("will rename the file when a directory and filename is specified", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("123");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 const dstFile = srcFile.copySync(dstDir, "dest.txt");
 
@@ -465,10 +464,10 @@ describe("File", () => {
 
 
             it("will rename the file when a destination File is specified", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("def");
 
-                let dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                let dstFile = new File(tmpDir, "dst", "dest.txt");
 
                 dstFile = srcFile.copySync(dstFile);
 
@@ -479,8 +478,8 @@ describe("File", () => {
 
 
             it("will throw if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => {
                     srcFile.copySync(dstDir);
@@ -489,8 +488,8 @@ describe("File", () => {
 
 
             it("will not create a destination directory if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => { srcFile.copySync(dstDir); }).toThrow();
                 expect(dstDir.existsSync()).toBeFalsy();
@@ -498,20 +497,20 @@ describe("File", () => {
 
 
             it("will not create a destination file if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => { srcFile.copySync(dstDir); }).toThrow();
-                const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                const dstFile = new File(dstDir, "xyzzy.txt");
                 expect(dstFile.existsSync()).toBeFalsy();
             });
 
 
             it("will overwrite an existing desintation file", () => {
-                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                const oldDstFile = new File(tmpDir, "dst", "dst.txt");
                 oldDstFile.writeSync("old");
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                const srcFile = new File(tmpDir, "src", "src.txt");
                 srcFile.writeSync("new");
 
                 const newDstFile = srcFile.copySync(oldDstFile);
@@ -523,10 +522,10 @@ describe("File", () => {
 
             it("will copy the atime and mtime from the source file", (done) => {
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+                const dstFile = new File(tmpDir, "dst", "file.txt");
 
                 // There is a maximum possible error of 1 second when
                 // copying the source's timestamps to the destination.
@@ -568,10 +567,10 @@ describe("File", () => {
 
 
             it("will move the file to the specified destination directory", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.move(dstDir)
                 .then((dstFile) => {
@@ -585,10 +584,10 @@ describe("File", () => {
 
 
             it("will rename the file when a directory and filename is specified", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("123");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.move(dstDir, "dest.txt")
                 .then((dstFile) => {
@@ -602,10 +601,10 @@ describe("File", () => {
 
 
             it("will rename the file when a destination File is specified", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("def");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                const dstFile = new File(tmpDir, "dst", "dest.txt");
 
                 srcFile.move(dstFile)
                 .then((dstFile) => {
@@ -619,8 +618,8 @@ describe("File", () => {
 
 
             it("will reject if the source file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.move(dstDir)
                 .catch(() => {
@@ -630,8 +629,8 @@ describe("File", () => {
 
 
             it("will not create a destination directory if the soure file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.move(dstDir)
                 .catch(() => {
@@ -642,12 +641,12 @@ describe("File", () => {
 
 
             it("will not create a destination file if the source file does not exist", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 srcFile.move(dstDir)
                 .catch(() => {
-                    const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                    const dstFile = new File(dstDir, "xyzzy.txt");
                     expect(dstFile.existsSync()).toBeFalsy();
                     done();
                 });
@@ -655,10 +654,10 @@ describe("File", () => {
 
 
             it("will overwrite an existing destination file", (done) => {
-                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                const oldDstFile = new File(tmpDir, "dst", "dst.txt");
                 oldDstFile.writeSync("old");
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                const srcFile = new File(tmpDir, "src", "src.txt");
                 srcFile.writeSync("new");
 
                 srcFile.move(oldDstFile)
@@ -673,10 +672,10 @@ describe("File", () => {
 
 
             it("will copy the atime and mtime from the source file", (done) => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+                const dstFile = new File(tmpDir, "dst", "file.txt");
 
                 // There is a maximum possible error of 1 second when
                 // copying the source's timestamps to the destination.
@@ -725,10 +724,10 @@ describe("File", () => {
 
 
             it("will move the file to the specified destination directory", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 const dstFile = srcFile.moveSync(dstDir);
 
@@ -740,10 +739,10 @@ describe("File", () => {
 
 
             it("will rename the file when a directory and filename is specified", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("123");
 
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const dstDir = new Directory(tmpDir, "dst");
 
                 const dstFile = srcFile.moveSync(dstDir, "dest.txt");
 
@@ -755,10 +754,10 @@ describe("File", () => {
 
 
             it("will rename the file when a destination File is specified", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("def");
 
-                let dstFile = new File(path.join(tmpDir.absPath(), "dst", "dest.txt"));
+                let dstFile = new File(tmpDir, "dst", "dest.txt");
 
                 dstFile = srcFile.moveSync(dstFile);
 
@@ -770,8 +769,8 @@ describe("File", () => {
 
 
             it("will throw if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => {
                     srcFile.moveSync(dstDir);
@@ -780,8 +779,8 @@ describe("File", () => {
 
 
             it("will not create a destination directory if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => { srcFile.moveSync(dstDir); }).toThrow();
                 expect(dstDir.existsSync()).toBeFalsy();
@@ -789,20 +788,20 @@ describe("File", () => {
 
 
             it("will not create a destination file if the source file does not exist", () => {
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "xyzzy.txt"));
-                const dstDir = new Directory(path.join(tmpDir.absPath(), "dst"));
+                const srcFile = new File(tmpDir, "src", "xyzzy.txt");
+                const dstDir = new Directory(tmpDir, "dst");
 
                 expect(() => { srcFile.moveSync(dstDir); }).toThrow();
-                const dstFile = new File(path.join(dstDir.absPath(), "xyzzy.txt"));
+                const dstFile = new File(dstDir, "xyzzy.txt");
                 expect(dstFile.existsSync()).toBeFalsy();
             });
 
 
             it("will overwrite an existing desintation file", () => {
-                const oldDstFile = new File(path.join(tmpDir.absPath(), "dst", "dst.txt"));
+                const oldDstFile = new File(tmpDir, "dst", "dst.txt");
                 oldDstFile.writeSync("old");
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "src.txt"));
+                const srcFile = new File(tmpDir, "src", "src.txt");
                 srcFile.writeSync("new");
 
                 const newDstFile = srcFile.moveSync(oldDstFile);
@@ -815,10 +814,10 @@ describe("File", () => {
 
             it("will copy the atime and mtime from the source file", (done) => {
 
-                const srcFile = new File(path.join(tmpDir.absPath(), "src", "file.txt"));
+                const srcFile = new File(tmpDir, "src", "file.txt");
                 srcFile.writeSync("abc");
 
-                const dstFile = new File(path.join(tmpDir.absPath(), "dst", "file.txt"));
+                const dstFile = new File(tmpDir, "dst", "file.txt");
 
                 // There is a maximum possible error of 1 second when
                 // copying the source's timestamps to the destination.
@@ -862,8 +861,8 @@ describe("File", () => {
 
 
             it("creates the necessary directories", (done) => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
 
                 file.write("hello world")
                 .then(() => {
@@ -876,8 +875,8 @@ describe("File", () => {
 
 
             it("writes the specified text to the file", (done) => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
 
                 file.write("hello world")
                 .then(() => {
@@ -895,8 +894,8 @@ describe("File", () => {
 
 
             it("creates the necessary directories", () => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
 
                 file.writeSync("hello world");
                 expect(dir.existsSync()).toBeTruthy();
@@ -905,8 +904,8 @@ describe("File", () => {
 
 
             it("writes the specified text to the file", () => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
 
                 file.writeSync("hello world");
 
@@ -921,8 +920,8 @@ describe("File", () => {
 
 
             it("can read the contents of a file", (done) => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
                 file.writeSync("12345");
 
                 file.read()
@@ -934,7 +933,7 @@ describe("File", () => {
 
 
             it("will reject if the file being read does not exist", (done) => {
-                const file = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+                const file = new File(tmpDir, "xyzzy.txt");
 
                 file.read()
                 .catch(() => {
@@ -950,8 +949,8 @@ describe("File", () => {
 
 
             it("can read the contents of a file", () => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "foo", "bar"));
-                const file = new File(path.join(dir.absPath(), "file.txt"));
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
                 file.writeSync("12345");
 
                 expect(file.readSync()).toEqual("12345");
@@ -959,7 +958,7 @@ describe("File", () => {
 
 
             it("will throw if the file being read does not exist", () => {
-                const file = new File(path.join(tmpDir.absPath(), "xyzzy.txt"));
+                const file = new File(tmpDir, "xyzzy.txt");
                 expect(() => {
                     file.readSync();
                 }).toThrow();

@@ -3,6 +3,7 @@ import * as path from "path";
 import {promisify1, promisify3} from "./promiseHelpers";
 import {Directory} from "./directory";
 import {ListenerTracker} from "./listenerTracker";
+import {PathPart, reducePathParts} from "./pathHelpers";
 
 
 const unlinkAsync = promisify1<void, string>(fs.unlink);
@@ -29,9 +30,10 @@ export class File
     }
 
 
-    public constructor(filePath: string)
+    public constructor(pathPart: PathPart, ...pathParts: PathPart[])
     {
-        this._filePath = filePath;
+        const allParts: PathPart[] = [pathPart].concat(pathParts);
+        this._filePath = reducePathParts(allParts);
     }
 
 
@@ -200,9 +202,9 @@ export class File
             // The caller has specified the destination directory and
             // optionally a new file name.
             if (dstFileName === undefined) {
-                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+                destFile = new File(dstDirOrFile, this.fileName);
             } else {
-                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+                destFile = new File(dstDirOrFile, dstFileName);
             }
         }
 
@@ -263,9 +265,9 @@ export class File
             // The caller has specified the destination directory and
             // optionally a new file name.
             if (dstFileName === undefined) {
-                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+                destFile = new File(dstDirOrFile, this.fileName);
             } else {
-                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+                destFile = new File(dstDirOrFile, dstFileName);
             }
         }
 
@@ -322,9 +324,9 @@ export class File
             // The caller has specified the destination directory and
             // optionally a new file name.
             if (dstFileName === undefined) {
-                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+                destFile = new File(dstDirOrFile, this.fileName);
             } else {
-                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+                destFile = new File(dstDirOrFile, dstFileName);
             }
         }
 
@@ -391,9 +393,9 @@ export class File
                            // The caller has specified the destination directory and
                            // optionally a new file name.
             if (dstFileName === undefined) {
-                destFile = new File(path.join(dstDirOrFile.toString(), this.fileName));
+                destFile = new File(dstDirOrFile, this.fileName);
             } else {
-                destFile = new File(path.join(dstDirOrFile.toString(), dstFileName));
+                destFile = new File(dstDirOrFile, dstFileName);
             }
         }
 

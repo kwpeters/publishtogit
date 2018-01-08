@@ -70,9 +70,8 @@ describe("Directory", () => {
 
 
             it("will return the string that was passed into the constructor", () => {
-                const path = "./foo/bar";
-                const dir1 = new Directory(path);
-                expect(dir1.toString()).toEqual(path);
+                const dir1 = new Directory("./foo/bar");
+                expect(dir1.toString()).toEqual("foo/bar");
             });
 
 
@@ -92,7 +91,7 @@ describe("Directory", () => {
 
             it("will return false for 2 different directories", () => {
                 const dir1 = new Directory(__dirname);
-                const dir2 = new Directory(path.join(__dirname, ".."));
+                const dir2 = new Directory(__dirname, "..");
 
                 expect(dir1.equals(dir2)).toBeFalsy();
             });
@@ -101,8 +100,8 @@ describe("Directory", () => {
             it("will return false for two directories named the same but in different folders", () => {
                 tmpDir.emptySync();
 
-                const dir1 = new Directory(path.join(tmpDir.absPath(), "foo", "dir"));
-                const dir2 = new Directory(path.join(tmpDir.absPath(), "bar", "dir"));
+                const dir1 = new Directory(tmpDir, "foo", "dir");
+                const dir2 = new Directory(tmpDir, "bar", "dir");
 
                 expect(dir1.equals(dir2)).toBeFalsy();
             });
@@ -124,7 +123,7 @@ describe("Directory", () => {
 
 
             it("will resolve to false for a directory that does not exist", () => {
-                const dir = new Directory(path.join(__dirname, "xyzzy"));
+                const dir = new Directory(__dirname, "xyzzy");
                 return dir.exists()
                 .then((stats) => {
                     expect(stats).toBeFalsy();
@@ -153,7 +152,7 @@ describe("Directory", () => {
 
 
             it("will return false for a directory that does not exist", () => {
-                const dir = new Directory(path.join(__dirname, "xyzzy"));
+                const dir = new Directory(__dirname, "xyzzy");
                 expect(dir.existsSync()).toBeFalsy();
             });
 
@@ -176,7 +175,7 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a file", () => {
 
-                new File(path.join(tmpDir.absPath(), "foo.txt")).writeSync("This is foo.txt");
+                new File(tmpDir, "foo.txt").writeSync("This is foo.txt");
 
                 return tmpDir.isEmpty()
                 .then((isEmpty: boolean) => {
@@ -187,7 +186,7 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a subdirectory", () => {
 
-                const fooDir = new Directory(path.join(tmpDir.absPath(), "foo"));
+                const fooDir = new Directory(tmpDir, "foo");
 
                 fooDir.ensureExistsSync();
 
@@ -217,14 +216,14 @@ describe("Directory", () => {
 
             it("will return false when a directory contains a file", () => {
 
-                const file = new File(path.join(tmpDir.absPath(), "foo.txt"));
+                const file = new File(tmpDir, "foo.txt");
                 file.writeSync("This is foo.txt");
                 expect(tmpDir.isEmptySync()).toBeFalsy();
             });
 
 
             it("will return false when a directory contains a subdirectory", () => {
-                const fooDir = new Directory(path.join(tmpDir.absPath(), "foo"));
+                const fooDir = new Directory(tmpDir, "foo");
 
                 fooDir.ensureExistsSync();
 
@@ -300,7 +299,7 @@ describe("Directory", () => {
 
             it("if the directory does not exist, will create all needed directories", () => {
 
-                const dir = new Directory(path.join(tmpDir.absPath(), "dir1", "dir2", "dir3"));
+                const dir = new Directory(tmpDir, "dir1", "dir2", "dir3");
 
                 return dir.empty()
                 .then(() => {
@@ -311,9 +310,9 @@ describe("Directory", () => {
 
             it("will remove files from the specified directory", () => {
 
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-                const fileB = new File(path.join(tmpDir.absPath(), "b.txt"));
-                const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
+                const fileA = new File(tmpDir, "a.txt");
+                const fileB = new File(tmpDir, "b.txt");
+                const fileC = new File(tmpDir, "c.txt");
 
                 fileA.writeSync("This is file A");
                 fileB.writeSync("This is file B");
@@ -336,7 +335,7 @@ describe("Directory", () => {
 
 
             it("if the specified directory does not exist, will create all needed directories", () => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "dir1", "dir2", "dir3"));
+                const dir = new Directory(tmpDir, "dir1", "dir2", "dir3");
                 dir.emptySync();
                 expect(dir.existsSync()).toBeTruthy();
             });
@@ -344,9 +343,9 @@ describe("Directory", () => {
 
             it("will remove files from the specified directory", () => {
 
-                const fileA = new File(path.join(tmpDir.absPath(), "a.txt"));
-                const fileB = new File(path.join(tmpDir.absPath(), "b.txt"));
-                const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
+                const fileA = new File(tmpDir, "a.txt");
+                const fileB = new File(tmpDir, "b.txt");
+                const fileC = new File(tmpDir, "c.txt");
 
                 fileA.writeSync("This is file A");
                 fileB.writeSync("This is file B");
@@ -369,9 +368,9 @@ describe("Directory", () => {
 
             it("will completely remove the directory and its contents", () => {
 
-                const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
-                const testFile = new File(path.join(testDir.absPath(), "file.txt"));
-                const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
+                const testDir = new Directory(tmpDir, "test");
+                const testFile = new File(testDir, "file.txt");
+                const testSubdir = new Directory(testDir, "subdir");
 
                 testDir.ensureExistsSync();
                 testFile.writeSync("A test file");
@@ -387,7 +386,7 @@ describe("Directory", () => {
 
 
             it("will resolve when the specified directory does not exist", (done) => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "xyzzy"));
+                const dir = new Directory(tmpDir, "xyzzy");
                 dir.delete()
                 .then(() => {
                     done();
@@ -404,9 +403,9 @@ describe("Directory", () => {
 
             it("will completely remove the directory and its contents", () => {
 
-                const testDir = new Directory(path.join(tmpDir.absPath(), "test"));
-                const testFile = new File(path.join(testDir.absPath(), "file.txt"));
-                const testSubdir = new Directory(path.join(testDir.absPath(), "subdir"));
+                const testDir = new Directory(tmpDir, "test");
+                const testFile = new File(testDir, "file.txt");
+                const testSubdir = new Directory(testDir, "subdir");
 
                 testDir.ensureExistsSync();
                 testFile.writeSync("A test file");
@@ -420,7 +419,7 @@ describe("Directory", () => {
 
 
             it("will not throw when the specified directory does not exist", () => {
-                const dir = new Directory(path.join(tmpDir.absPath(), "xyzzy"));
+                const dir = new Directory(tmpDir, "xyzzy");
 
                 expect(() => {
                     dir.deleteSync();
@@ -441,13 +440,13 @@ describe("Directory", () => {
 
             it("will read the files and subdirectories within a directory", (done) => {
 
-                const dirA = new Directory(path.join(tmpDir.absPath(), "dirA"));
-                const fileA = new File(path.join(dirA.absPath(), "a.txt"));
+                const dirA = new Directory(tmpDir, "dirA");
+                const fileA = new File(dirA, "a.txt");
 
-                const dirB = new Directory(path.join(tmpDir.absPath(), "dirB"));
-                const fileB = new File(path.join(dirB.absPath(), "b.txt"));
+                const dirB = new Directory(tmpDir, "dirB");
+                const fileB = new File(dirB, "b.txt");
 
-                const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
+                const fileC = new File(tmpDir, "c.txt");
 
                 dirA.ensureExistsSync();
                 dirB.ensureExistsSync();
@@ -478,13 +477,13 @@ describe("Directory", () => {
 
             it("will read the files and subdirectories within a directory", () => {
 
-                const dirA = new Directory(path.join(tmpDir.absPath(), "dirA"));
-                const fileA = new File(path.join(dirA.absPath(), "a.txt"));
+                const dirA = new Directory(tmpDir, "dirA");
+                const fileA = new File(dirA, "a.txt");
 
-                const dirB = new Directory(path.join(tmpDir.absPath(), "dirB"));
-                const fileB = new File(path.join(dirB.absPath(), "b.txt"));
+                const dirB = new Directory(tmpDir, "dirB");
+                const fileB = new File(dirB, "b.txt");
 
-                const fileC = new File(path.join(tmpDir.absPath(), "c.txt"));
+                const fileC = new File(tmpDir, "c.txt");
 
                 dirA.ensureExistsSync();
                 dirB.ensureExistsSync();
@@ -513,10 +512,10 @@ describe("Directory", () => {
 
             it("will recursively remove all subdirectories", () => {
 
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBa", "dirC").ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBb", "dirE").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2a", "dir3").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2b", "dir4").ensureExistsSync();
 
                 return tmpDir.prune()
                 .then(() => {
@@ -527,11 +526,11 @@ describe("Directory", () => {
 
             it("will not prune directories containing files", () => {
 
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-                const file = new File(path.join(tmpDir.absPath(), "dirA", "foo.txt"));
+                new Directory(tmpDir, "dirA", "dirBa", "dirC").ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBb", "dirE").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2a", "dir3").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2b", "dir4").ensureExistsSync();
+                const file = new File(tmpDir, "dirA", "foo.txt");
                 file.writeSync("This is foo.txt");
 
                 return tmpDir.prune()
@@ -563,10 +562,10 @@ describe("Directory", () => {
 
             it("will recursiveely remove all subdirectories", () => {
 
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBa", "dirC").ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBb", "dirE").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2a", "dir3").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2b", "dir4").ensureExistsSync();
 
                 tmpDir.pruneSync();
 
@@ -576,11 +575,11 @@ describe("Directory", () => {
 
             it("will not prune directories containing files", () => {
 
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBa", "dirC")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dirA", "dirBb", "dirE")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2a", "dir3")).ensureExistsSync();
-                new Directory(path.join(tmpDir.absPath(), "dir1", "dir2b", "dir4")).ensureExistsSync();
-                const file = new File(path.join(tmpDir.absPath(), "dirA", "foo.txt"));
+                new Directory(tmpDir, "dirA", "dirBa", "dirC").ensureExistsSync();
+                new Directory(tmpDir, "dirA", "dirBb", "dirE").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2a", "dir3").ensureExistsSync();
+                new Directory(tmpDir, "dir1", "dir2b", "dir4").ensureExistsSync();
+                const file = new File(tmpDir, "dirA", "foo.txt");
                 file.writeSync("This is foo.txt");
 
                 tmpDir.pruneSync();

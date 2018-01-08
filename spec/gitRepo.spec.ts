@@ -256,15 +256,17 @@ describe("GitRepo", () => {
             let theRepo: GitRepo;
 
 
-            beforeEach((done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+            beforeEach(() => {
+                return GitRepo.create(new Directory(__dirname, ".."))
                 .then((repo) => {
                     theRepo = repo;
                     return repo.deleteTag("unittest_tag");
-                })
-                .then(() => {
-                    done();
                 });
+            });
+
+
+            afterEach(() => {
+                return theRepo.deleteTag("unittest_tag");
             });
 
 

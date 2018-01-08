@@ -1,8 +1,8 @@
 import * as path from "path";
-import * as os from "os";
 import {Directory} from "./directory";
 import {File} from "./file";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
+import {config} from "./publishToGitConfig";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 
 
@@ -23,7 +23,7 @@ function main(): void
         return;
     }
 
-    const tmpDir = new Directory(os.homedir(), ".publish-to-git", "tmp");
+    const tmpDir = config.tmpDir;
     const publishRepoDir = new Directory(tmpDir, gitUrlToProjectName(publishConfig.publishRepository));
 
     let publishRepo: GitRepo;

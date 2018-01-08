@@ -1,5 +1,5 @@
 import {Directory} from "./directory";
-import * as path from "path";
+import {File} from "./file";
 import {spawn} from "./spawn";
 import {readConfig, IPackageJson} from "./configHelpers";
 
@@ -25,27 +25,27 @@ export function gitUrlToProjectName(gitUrl: string): string
 export class GitRepo
 {
     //region Private Data Members
-    private _dirAbsPath: string;
+    private _dir: Directory;
     //endregion
 
     /**
      * Creates a new GitRepo instance, pointing it at a directory containing the
      * wrapped repo.
-     * @param dirPath - The directory containing the repo
+     * @param dir - The directory containing the repo
      * @return A Promise for the GitRepo.
      */
-    public static create(dirPath: string): Promise<GitRepo>
+    public static create(dir: Directory): Promise<GitRepo>
     {
         return Promise.all([
-            Directory.exists(dirPath),                    // Directory specified by the user must exist
-            Directory.exists(path.join(dirPath, ".git"))  // The directory must contain a .git folder
+            dir.exists(),                         // Directory specified by the user must exist
+            new Directory(dir, ".git").exists()   // The directory must contain a .git folder
         ])
         .then((results) => {
             if (!results[0] || !results[1])
             {
                 throw new Error("Path does not exist or is not a Git repo.");
             }
-            return new GitRepo(dirPath);
+            return new GitRepo(dir);
         });
     }
 
@@ -56,7 +56,7 @@ export class GitRepo
      * @param parentDir - The parent directory where the repo will be cloned
      * @return A promise for the cloned Git repo.
      */
-    public static clone(gitUrl: string, parentDir: string): Promise<GitRepo>
+    public static clone(gitUrl: string, parentDir: Directory): Promise<GitRepo>
     {
         const projName = gitUrlToProjectName(gitUrl);
         if (projName === undefined)
@@ -64,9 +64,9 @@ export class GitRepo
             return Promise.reject(new Error("Invalid Git URL."));
         }
 
-        const repoDir = path.join(parentDir, projName);
+        const repoDir = new Directory(parentDir, projName);
 
-        return Directory.exists(parentDir)
+        return parentDir.exists()
         .then((isDirectory) => {
             if (!isDirectory)
             {
@@ -77,7 +77,7 @@ export class GitRepo
             return spawn(
                 "git",
                 ["clone", gitUrl, projName],
-                parentDir);
+                parentDir.toString());
         })
         .then(() => {
             return new GitRepo(repoDir);
@@ -89,21 +89,21 @@ export class GitRepo
      * Constructs a new GitRepo.  Private in order to provide error checking.
      * See static methods.
      *
-     * @param dirPath - The directory containing the Git repo.
+     * @param dir - The directory containing the Git repo.
      */
-    private constructor(dirPath: string)
+    private constructor(dir: Directory)
     {
-        this._dirAbsPath = path.resolve(dirPath);
+        this._dir = dir;
     }
 
 
     /**
-     * Gets the (absolute path) directory containing this Git repo.
-     * @return The directory (in absolute path form) containing this git repo.
+     * Gets the directory containing this Git repo.
+     * @return The directory containing this git repo.
      */
-    public get directory(): string
+    public get directory(): Directory
     {
-        return this._dirAbsPath;
+        return this._dir;
     }
 
 
@@ -114,7 +114,7 @@ export class GitRepo
      */
     public files(): Promise<Array<string>>
     {
-        return spawn("git", ["ls-files"], this._dirAbsPath)
+        return spawn("git", ["ls-files"], this._dir.toString())
         .then((stdout) => {
             return stdout.split("\n");
         });
@@ -128,7 +128,7 @@ export class GitRepo
      */
     public remotes(): Promise<{[name: string]: string}>
     {
-        return spawn("git", ["remote", "-vv"], this._dirAbsPath)
+        return spawn("git", ["remote", "-vv"], this._dir.toString())
         .then((stdout) => {
 
             const lines = stdout.split("\n");
@@ -170,7 +170,7 @@ export class GitRepo
             }
 
             // Look for the project name in package.json.
-            const packageJson = readConfig<IPackageJson>(this._dirAbsPath, "package.json");
+            const packageJson = readConfig<IPackageJson>(new File(this._dir, "package.json"));
             if (packageJson) {
                 return packageJson.name;
             }
@@ -180,12 +180,13 @@ export class GitRepo
                 return projName;
             }
 
-            const match = this._dirAbsPath.match(/^.*\/(.*)$/);
-            if (match) {
-                return match[1];
-            } else {
+            const dirName = this._dir.dirName;
+            if (dirName === "/")
+            {
                 throw new Error("Unable to determine Git repo name.");
             }
+
+            return dirName;
         });
     }
 }

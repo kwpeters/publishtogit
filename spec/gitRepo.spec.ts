@@ -11,13 +11,13 @@ describe("GitUrlToProjectName", () => {
 
         expect(() => {
             // Missing .git at the end of the URL.
-            gitUrlToProjectName("https://github.com/kwpeters/publish-to-git");
+            gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src");
         }).toThrowError(/invalid Git URL/);
     });
 
 
     it("will return the proper name when given a valid URL", () => {
-        expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git.git")).toEqual("publish-to-git");
+        expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src.git")).toEqual("publish-to-git-src");
     });
 
 
@@ -33,7 +33,7 @@ describe("GitRepo", () => {
         describe("create()", () => {
 
             it("will reject when not given a directory that is not a repo directory", (done) => {
-                GitRepo.create(__dirname)
+                GitRepo.create(new Directory(__dirname))
                 .catch(() => {
                     done();
                 });
@@ -42,7 +42,7 @@ describe("GitRepo", () => {
 
             it("will create a new instance when given a Git repo directory", (done) => {
 
-                GitRepo.create(path.join(__dirname, ".."))
+                GitRepo.create(new Directory(__dirname, ".."))
                 .then((inst) => {
                     expect(inst).toBeTruthy();
                     done();
@@ -63,13 +63,13 @@ describe("GitRepo", () => {
 
             it("will clone the specified repository in the specified directory", () => {
 
-                return GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", tmpDir.absPath())
+                return GitRepo.clone("https://github.com/kwpeters/publish-to-git-src.git", tmpDir)
                 .then((repo: GitRepo) => {
 
                     expect(repo).toBeTruthy();
 
-                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "publish-to-git"))).toBeTruthy();
-                    expect(File.existsSync(path.join(tmpDir.absPath(), "publish-to-git", "package.json"))).toBeTruthy();
+                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "publish-to-git-src"))).toBeTruthy();
+                    expect(File.existsSync(path.join(tmpDir.absPath(), "publish-to-git-src", "package.json"))).toBeTruthy();
                 });
             });
 
@@ -91,7 +91,7 @@ describe("GitRepo", () => {
 
             it("will return the files under version control", (done) => {
 
-                GitRepo.clone("https://github.com/kwpeters/publish-to-git.git", tmpDir.absPath())
+                GitRepo.clone("https://github.com/kwpeters/publish-to-git-src.git", tmpDir)
                 .then((repo) => {
                     return repo.files();
                 })
@@ -109,13 +109,13 @@ describe("GitRepo", () => {
         describe("remotes()", () => {
 
             it("will return the correct map of remotes", (done) => {
-                GitRepo.create(path.join(__dirname, ".."))
+                GitRepo.create(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.remotes();
                 })
                 .then((remotes) => {
                     expect(Object.keys.length).toEqual(1);
-                    expect(remotes.origin).toEqual("https://github.com/kwpeters/publish-to-git.git");
+                    expect(remotes.origin).toEqual("https://github.com/kwpeters/publish-to-git-src.git");
                     done();
                 });
             });
@@ -127,12 +127,12 @@ describe("GitRepo", () => {
 
 
             it("will return the name of the repo", (done) => {
-                GitRepo.create(path.join(__dirname, ".."))
+                GitRepo.create(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.name();
                 })
                 .then((repoName) => {
-                    expect(repoName).toEqual("publish-to-git");
+                    expect(repoName).toEqual("publish-to-git-src");
                     done();
                 });
             });
@@ -145,23 +145,13 @@ describe("GitRepo", () => {
 
 
             it("will return the directory of the repo", (done) => {
-                GitRepo.create(path.join(__dirname, ".."))
+                GitRepo.create(new Directory(__dirname, ".."))
                 .then((repo) => {
-                    expect(repo.directory).toContain("publish-to-git");
+                    expect(repo.directory).toBeTruthy();
+                    expect(repo.directory.absPath()).toContain("publish-to-git");
                     done();
                 });
             });
-
-
-            it("will return an absolute path", (done) => {
-                GitRepo.create(path.join(__dirname, ".."))
-                .then((repo) => {
-                    // Must start with a slash.
-                    expect(repo.directory).toMatch(/^\//);
-                    done();
-                });
-            });
-
 
 
         });

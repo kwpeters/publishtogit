@@ -4,18 +4,21 @@ import {File} from "./file";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {config} from "./publishToGitConfig";
 import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
+import {NodePackage} from "./nodePackage";
 
 
 function main(): void
 {
-    const srcDir = process.argv[2];
-    if (!srcDir) {
+    if (!process.argv[2])
+    {
         console.error("Source directory argument not specified!");
         return;
     }
 
-    const publishConfig = readConfig<IPublishToGitConfig>(srcDir, "publishtogit.json");
-    const packageConfig = readConfig<IPackageJson>(srcDir, "package.json");
+    const srcDir = new Directory(process.argv[2]);
+
+    const publishConfig = readConfig<IPublishToGitConfig>(new File(srcDir, "publishtogit.json"));
+    const packageConfig = readConfig<IPackageJson>(new File(srcDir, "package.json"));
 
     if (!publishConfig || !packageConfig)
     {
@@ -39,7 +42,7 @@ function main(): void
         //
         // Clone the publishing repo.
         //
-        return GitRepo.clone(publishConfig.publishRepository, tmpDir.absPath());
+        return GitRepo.clone(publishConfig.publishRepository, tmpDir);
     })
     .then((repo) => {
         publishRepo = repo;
@@ -50,7 +53,8 @@ function main(): void
         return deleteTrackedFiles(publishRepo);
     })
     .then(() => {
-        console.log("Done.");
+        const pkg = new NodePackage(srcDir);
+        return pkg.publish(publishRepoDir, false);
     });
 }
 
@@ -62,11 +66,13 @@ function main(): void
  */
 function deleteTrackedFiles(repo: GitRepo): Promise<void>
 {
+    const repoAbsPath = repo.directory.absPath();
+
     return repo.files()
     .then((relFilePaths) => {
         const deletePromises = relFilePaths.map((curRelPath) => {
             // Make the relative file paths absolute.
-            return path.join(repo.directory, curRelPath);
+            return path.join(repoAbsPath, curRelPath);
         })
         .map((curAbsPath) => {
             // Delete

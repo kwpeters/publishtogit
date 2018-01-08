@@ -189,4 +189,61 @@ export class GitRepo
             return dirName;
         });
     }
+
+
+    public tags(): Promise<Array<string>>
+    {
+        return spawn("git", ["tag"], this._dir.toString())
+        .then((stdout) => {
+            if (stdout.length === 0)
+            {
+                return [];
+            }
+
+            return stdout.split("\n");
+        });
+    }
+
+
+    public hasTag(tagName: string): Promise<boolean>
+    {
+        return this.tags()
+        .then((tags) => {
+            return tags.indexOf(tagName) >= 0;
+        });
+    }
+
+
+    public createTag(tagName: string, message?: string): Promise<GitRepo>
+    {
+        if (message === undefined)
+        {
+            message = "";
+        }
+
+        return spawn("git", ["tag", "-a", tagName, "-m", message], this._dir.toString())
+        .then(() => {
+            return this;
+        });
+    }
+
+
+    public deleteTag(tagName: string): Promise<GitRepo>
+    {
+        return spawn("git", ["tag", "--delete", tagName], this._dir.toString())
+        .catch((err) => {
+            if (err.stderr.includes("not found"))
+            {
+                // The specified tag name was not found.  We are still
+                // successful.
+            }
+            else
+            {
+                throw err;
+            }
+        })
+        .then(() => {
+            return this;
+        });
+    }
 }

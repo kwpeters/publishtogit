@@ -82,6 +82,7 @@ describe("GitRepo", () => {
 
     describe("instance", () => {
 
+
         describe("files()", () => {
 
             beforeEach(() => {
@@ -155,6 +156,142 @@ describe("GitRepo", () => {
 
 
         });
+
+
+        describe("tags()", () => {
+
+
+            it("will list the tags applied to the repository", (done) => {
+                GitRepo.create(new Directory(__dirname, ".."))
+                .then((repo) => {
+                    return repo.tags();
+                })
+                .then((tags) => {
+                    expect(tags).toContain("test");
+                    done();
+                });
+            });
+
+
+        });
+
+
+        describe("hasTag()", () => {
+
+
+            it("will return true for a tag that exists", (done) => {
+                GitRepo.create(new Directory(__dirname, ".."))
+                .then((repo) => {
+                    return repo.hasTag("test");
+                })
+                .then((hasTag) => {
+                    expect(hasTag).toBeTruthy();
+                    done();
+                });
+            });
+
+
+            it("will return false for a tag that does not exists", (done) => {
+                GitRepo.create(new Directory(__dirname, ".."))
+                .then((repo) => {
+                    return repo.hasTag("xyzzy");
+                })
+                .then((hasTag) => {
+                    expect(hasTag).toBeFalsy();
+                    done();
+                });
+            });
+
+
+        });
+
+
+        describe("createTag()", () => {
+
+
+            let theRepo: GitRepo;
+
+
+            beforeEach((done) => {
+                GitRepo.create(new Directory(__dirname, ".."))
+                .then((repo) => {
+                    theRepo = repo;
+                    return repo.deleteTag("unittest_tag");
+                })
+                .then(() => {
+                    done();
+                });
+            });
+
+
+            it("will resolve when the specified tag is created", (done) => {
+                theRepo.createTag("unittest_tag")
+                .then(() => {
+                    return theRepo.hasTag("unittest_tag");
+                })
+                .then((hasTag) => {
+                    expect(hasTag).toBeTruthy();
+                    done();
+                });
+            });
+
+
+            it("will reject when the tag already exists", (done) => {
+                theRepo.createTag("unittest_tag")
+                .then(() => {
+                    return theRepo.createTag("unittest_tag");
+                })
+                .catch(() => {
+                    done();
+                });
+            });
+
+
+        });
+
+
+        describe("deleteTag()", () => {
+
+
+            let theRepo: GitRepo;
+
+
+            beforeEach((done) => {
+                GitRepo.create(new Directory(__dirname, ".."))
+                .then((repo) => {
+                    theRepo = repo;
+                    return repo.deleteTag("unittest_tag");
+                })
+                .then(() => {
+                    done();
+                });
+            });
+
+
+            it("will resolve if the specified tag does not exist", (done) => {
+                theRepo.deleteTag("xyzzy")
+                .then(() => {
+                    done();
+                });
+            });
+
+
+            it("will resolve when the tag is deleted", (done) => {
+                theRepo.createTag("unittest_tag")
+                .then(() => {
+                    return theRepo.deleteTag("unittest_tag");
+                })
+                .then(() => {
+                    return theRepo.hasTag("unittest_tag");
+                })
+                .then((hasTag) => {
+                    expect(hasTag).toBeFalsy();
+                    done();
+                });
+            });
+
+        });
+
 
     });
 

@@ -1,0 +1,9 @@
+/.idea/
+.npmignore
+.nvmrc
+gulpfile.js
+publishtogit.json
+/spec/
+/tmp/
+tsconfig.json
+tslint.json

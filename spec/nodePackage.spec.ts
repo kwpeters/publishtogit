@@ -79,7 +79,7 @@ describe("NodePackage", () => {
             });
 
 
-            it("will place the .tgz is the specified output directory", (done) => {
+            it("will place the .tgz in the specified output directory", (done) => {
                 const pkgDir = new Directory(__dirname, "..");
                 const pkg = new NodePackage(pkgDir);
                 pkg.pack(tmpDir)
@@ -91,6 +91,37 @@ describe("NodePackage", () => {
                 });
             });
 
+
+        });
+
+
+        describe("publish()", () => {
+
+
+            beforeEach(() => {
+                tmpDir.emptySync();
+            });
+
+
+            it("will publish to a directory", (done) => {
+                const pkgDir = new Directory(__dirname, "..");
+                const pkg = new NodePackage(pkgDir);
+                pkg.publish(tmpDir, true)
+                .then((publishDir: Directory) => {
+
+                    // Note: Because these unit tests are run before building,
+                    // we should not expect to see any transpiled output files.
+
+                    // Make sure that a file that should be present is present.
+                    expect(new File(tmpDir, "package.json").existsSync()).toBeTruthy();
+
+                    // Make sure that a file being npm ignored does not exist.
+                    expect(new File(tmpDir, "publishtogit.json").existsSync()).toBeFalsy();
+
+                    done();
+                });
+
+            });
 
 
         });

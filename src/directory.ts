@@ -1,6 +1,7 @@
 import * as fs from "fs";
-import {File} from "./file";
 import * as path from "path";
+import * as _ from "lodash";
+import {File} from "./file";
 import {promisify1, sequence} from "./promiseHelpers";
 import {PathPart, reducePathParts} from "./pathHelpers";
 
@@ -45,6 +46,21 @@ export class Directory
         // Remove trailing directory separator characters.
         while (this._dirPath.endsWith(path.sep)) {
             this._dirPath = this._dirPath.slice(0, -1);
+        }
+    }
+
+
+    /**
+     * Gets the name of this directory (without the preceding path)
+     */
+    public get dirName(): string
+    {
+        if (this._dirPath.length === 0)
+        {
+            // This directory represents the root of the filesystem.
+            return "/";
+        } else {
+            return _.last(this._dirPath.split(path.sep))!;
         }
     }
 
@@ -447,4 +463,35 @@ export class Directory
     }
 
 
+    public copy(destDir: Directory, copyRoot: boolean): Promise<void>
+    {
+        if (copyRoot)
+        {
+            // Copying this directory to the destination with copyRoot true just
+            // means creating the counterpart to this directory in the
+            // destination and then copying to that directory with copyRoot
+            // false.
+            const thisDest: Directory = new Directory(destDir, this.dirName);
+            return thisDest.ensureExists()
+            .then(() => {
+                return this.copy(thisDest, false);
+            });
+        }
+        
+        return this.contents()
+        .then((contents: IDirectoryContents) => {
+            // Copy the files in this directory to the destination.
+            const fileCopyPromises = contents.files.map((curFile) => {
+                return curFile.copy(destDir, curFile.fileName);
+            });
+
+            const dirCopyPromises = contents.subdirs.map((curSubdir) => {
+                return curSubdir.copy(destDir, true);
+            });
+
+            return Promise.all(_.concat<any>(fileCopyPromises, dirCopyPromises));
+        })
+        .then(() => {
+        });
+    }
 }

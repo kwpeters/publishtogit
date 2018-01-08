@@ -494,4 +494,32 @@ export class Directory
         .then(() => {
         });
     }
+
+
+    public copySync(destDir: Directory, copyRoot: boolean): void
+    {
+        if (copyRoot)
+        {
+            // Copying this directory to the destination with copyRoot true just
+            // means creating the counterpart to this directory in the
+            // destination and then copying to that directory with copyRoot
+            // false.
+            const thisDest: Directory = new Directory(destDir, this.dirName);
+            thisDest.ensureExistsSync();
+            this.copySync(thisDest, false);
+            return;
+        }
+
+        const contents = this.contentsSync();
+
+        // Copy the files in this directory to the destination.
+        contents.files.forEach((curFile) => {
+            curFile.copySync(destDir, curFile.fileName);
+        });
+
+        contents.subdirs.forEach((curSubdir) => {
+            curSubdir.copySync(destDir, true);
+        });
+    }
+
 }

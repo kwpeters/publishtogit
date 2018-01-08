@@ -714,6 +714,98 @@ describe("Directory", () => {
             });
 
 
+        });
+
+
+        describe("copySync()", () => {
+
+
+            beforeEach(() => {
+                tmpDir.emptySync();
+            });
+
+
+            it("will copy a directory structure to the destination (copyRoot=true)", () => {
+                // src
+                //   dirA
+                //     a.txt
+                //     dirB
+                //       b.txt
+                //     dirC
+                // dest
+
+                // With copyRoot=true the src directory and all of its contents
+                // should be copied under dest.
+
+                const srcDir = new Directory(tmpDir, "src");
+
+                const dirA = new Directory(srcDir, "dirA");
+                dirA.ensureExistsSync();
+
+                const fileA = new File(dirA, "a.txt");
+                fileA.writeSync("file a");
+
+                const dirB = new Directory(dirA, "dirB");
+                dirB.ensureExistsSync();
+
+                const fileB = new File(dirB, "b.txt");
+                fileB.writeSync("file b");
+
+                const dirC = new Directory(dirA, "dirC");
+                dirC.ensureExistsSync();
+
+                const destDir = new Directory(tmpDir, "dest");
+                destDir.ensureExistsSync();
+
+                srcDir.copySync(destDir, true);
+                expect(new Directory(destDir, "src", "dirA").existsSync()).toBeTruthy();
+                expect(new File(     destDir, "src", "dirA", "a.txt").existsSync()).toBeTruthy();
+                expect(new Directory(destDir, "src", "dirA", "dirB").existsSync()).toBeTruthy();
+                expect(new File(     destDir, "src", "dirA", "dirB", "b.txt").existsSync()).toBeTruthy();
+                expect(new Directory(destDir, "src", "dirA", "dirC").existsSync()).toBeTruthy();
+            });
+
+
+            it("will copy a directory structure to the destination (copyRoot=false)", () => {
+                // src
+                //   dirA
+                //     a.txt
+                //     dirB
+                //       b.txt
+                //     dirC
+                // dest
+
+                // With copyRoot=false src's contents (not src itself) should be
+                // copied under dest.
+
+                const srcDir = new Directory(tmpDir, "src");
+
+                const dirA = new Directory(srcDir, "dirA");
+                dirA.ensureExistsSync();
+
+                const fileA = new File(dirA, "a.txt");
+                fileA.writeSync("file a");
+
+                const dirB = new Directory(dirA, "dirB");
+                dirB.ensureExistsSync();
+
+                const fileB = new File(dirB, "b.txt");
+                fileB.writeSync("file b");
+
+                const dirC = new Directory(dirA, "dirC");
+                dirC.ensureExistsSync();
+
+                const destDir = new Directory(tmpDir, "dest");
+                destDir.ensureExistsSync();
+
+                srcDir.copySync(destDir, false);
+                expect(new Directory(destDir, "dirA").existsSync()).toBeTruthy();
+                expect(new File(     destDir, "dirA", "a.txt").existsSync()).toBeTruthy();
+                expect(new Directory(destDir, "dirA", "dirB").existsSync()).toBeTruthy();
+                expect(new File(     destDir, "dirA", "dirB", "b.txt").existsSync()).toBeTruthy();
+                expect(new Directory(destDir, "dirA", "dirC").existsSync()).toBeTruthy();
+            });
+
 
         });
 

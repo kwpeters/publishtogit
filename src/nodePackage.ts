@@ -12,6 +12,13 @@ export class NodePackage
     //endregion
 
 
+    /**
+     * Creates a NodePackage representing the package in the specified directory.
+     * @param pkgDir - The directory containing the Node.js package
+     * @return A promise for the resulting NodePackage.  This promise will be
+     * rejected if the specified directory does not exist or does not contain a
+     * package.json file.
+     */
     public static fromDirectory(pkgDir: Directory): Promise<NodePackage>
     {
         // Make sure the directory exists.
@@ -38,6 +45,16 @@ export class NodePackage
     }
 
 
+    /**
+     * Constructs a new NodePackage.  This constructor is private and should not
+     * be called by clients.  Instead, use one of the static methods to create
+     * instances.
+     *
+     * @class
+     * @classdesc A class that represents a Node.js package.
+     *
+     * @param pkgDir - The directory containing the Node.js package
+     */
     private constructor(pkgDir: Directory)
     {
         this._pkgDir = pkgDir;

@@ -38,12 +38,19 @@ export class NodePackage
     }
 
 
-    public constructor(pkgDir: Directory)
+    private constructor(pkgDir: Directory)
     {
         this._pkgDir = pkgDir;
     }
 
 
+    /**
+     * Packs this Node package into a .tgz file using "npm pack"
+     * @method
+     * @param outDir - The output directory where to place the output file.  If
+     * not specified, the output will be placed in the package's folder.
+     * @return A File object representing the output .tgz file
+     */
     public pack(outDir?: Directory): Promise<File>
     {
         return spawn("npm", ["pack"], this._pkgDir.toString())

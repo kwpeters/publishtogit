@@ -7,7 +7,7 @@ import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
 import {NodePackage} from "./nodePackage";
 
 
-function main(): void
+async function main(): Promise<void>
 {
     if (!process.argv[2])
     {
@@ -29,39 +29,28 @@ function main(): void
     const tmpDir = config.tmpDir;
     const publishRepoDir = new Directory(tmpDir, gitUrlToProjectName(publishConfig.publishRepository));
 
-    let publishRepo: GitRepo;
+    await tmpDir.ensureExists();
 
-    tmpDir.ensureExists()
-    .then(() => {
-        // Delete the temporary publishing directory if it already exists.
-        return publishRepoDir.delete();
-    })
-    .then(() => {
-        // Clone the publishing repo.
-        return GitRepo.clone(publishConfig.publishRepository, tmpDir);
-    })
-    .then((repo) => {
-        publishRepo = repo;
-        // Get the tags in the repo so we can check if there is already one with
-        // the version number.
-        return repo.hasTag(packageConfig.version);
-    })
-    .then((hasTag) => {
-        if (hasTag)
-        {
-            throw new Error(`The publish repo already has the tag ${packageConfig.version}.  Publish aborted.`);
-        }
+    // Delete the temporary publishing directory if it already exists.
+    await publishRepoDir.delete();
 
-        // Delete all files in the publish repo.
-        return deleteTrackedFiles(publishRepo);
-    })
-    .then(() => {
-        const pkg = new NodePackage(srcDir);
-        return pkg.publish(publishRepoDir, false);
-    })
-    .then(() => {
-        return publishRepo.stageAll();
-    });
+    // Clone the publishing repo.
+    const publishRepo: GitRepo = await GitRepo.clone(publishConfig.publishRepository, tmpDir);
+
+    // Get the tags in the repo so we can check if there is already one with
+    // the version number.
+    const hasTag = await publishRepo.hasTag(packageConfig.version);
+    if (hasTag)
+    {
+        throw new Error(`The publish repo already has the tag ${packageConfig.version}.  Publish aborted.`);
+    }
+
+    // Delete all files in the publish repo.
+    await deleteTrackedFiles(publishRepo);
+
+    const pkg: NodePackage = await NodePackage.fromDirectory(srcDir);
+    await pkg.publish(publishRepoDir, false);
+    await publishRepo.stageAll();
 
 
     // TODO: Drop a label

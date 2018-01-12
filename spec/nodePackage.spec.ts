@@ -50,13 +50,34 @@ describe("NodePackage", () => {
     describe("instance", () => {
 
 
+        describe("config", () => {
+
+
+            it("will return properties read from package.json", (done) => {
+                const pkgDir = new Directory(__dirname, "..");
+                NodePackage.fromDirectory(pkgDir)
+                .then((pkg) => {
+                    expect(pkg.config.name).toEqual("publish-to-git");
+                    expect(pkg.config.version).toBeTruthy();
+                    expect(pkg.config.description).toBeTruthy();
+                    expect(pkg.config.repository).toBeTruthy();
+                    done();
+                });
+
+
+            });
+        });
+
+
         describe("pack()", () => {
 
 
             it("will produce a .tgz file", (done) => {
                 const pkgDir = new Directory(__dirname, "..");
-                const pkg = new NodePackage(pkgDir);
-                pkg.pack()
+                NodePackage.fromDirectory(pkgDir)
+                .then((pkg) => {
+                    return pkg.pack();
+                })
                 .then((packedFile: File) => {
                     expect(packedFile).toBeTruthy();
                     expect(packedFile.fileName).toMatch(/publish-to-git-\d+\.\d+\.\d+\.tgz/);
@@ -68,8 +89,10 @@ describe("NodePackage", () => {
 
             it("will place the .tgz in the package directory when an output directory is not specified", (done) => {
                 const pkgDir = new Directory(__dirname, "..");
-                const pkg = new NodePackage(pkgDir);
-                pkg.pack()
+                NodePackage.fromDirectory(pkgDir)
+                .then((pkg) => {
+                    return pkg.pack();
+                })
                 .then((packedFile: File) => {
                     expect(packedFile).toBeTruthy();
                     expect(packedFile.existsSync()).toBeTruthy();
@@ -81,8 +104,10 @@ describe("NodePackage", () => {
 
             it("will place the .tgz in the specified output directory", (done) => {
                 const pkgDir = new Directory(__dirname, "..");
-                const pkg = new NodePackage(pkgDir);
-                pkg.pack(tmpDir)
+                NodePackage.fromDirectory(pkgDir)
+                .then((pkg) => {
+                    return pkg.pack(tmpDir);
+                })
                 .then((packedFile: File) => {
                     expect(packedFile).toBeTruthy();
                     expect(packedFile.existsSync()).toBeTruthy();
@@ -105,12 +130,16 @@ describe("NodePackage", () => {
 
             it("will publish to a directory", (done) => {
                 const pkgDir = new Directory(__dirname, "..");
-                const pkg = new NodePackage(pkgDir);
-                pkg.publish(tmpDir, true)
+                NodePackage.fromDirectory(pkgDir)
+                .then((pkg) => {
+                    return pkg.publish(tmpDir, true);
+                })
                 .then((publishDir: Directory) => {
 
                     // Note: Because these unit tests are run before building,
                     // we should not expect to see any transpiled output files.
+
+                    expect(publishDir.absPath()).toEqual(tmpDir.absPath());
 
                     // Make sure that a file that should be present is present.
                     expect(new File(tmpDir, "package.json").existsSync()).toBeTruthy();

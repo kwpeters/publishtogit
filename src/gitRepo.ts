@@ -1,7 +1,8 @@
 import {Directory} from "./directory";
 import {File} from "./file";
 import {spawn} from "./spawn";
-import {readConfig, IPackageJson} from "./configHelpers";
+import {readConfig} from "./configHelpers";
+import {IPackageJson} from "./nodePackage";
 
 
 /**

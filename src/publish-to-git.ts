@@ -3,7 +3,7 @@ import {Directory} from "./directory";
 import {File} from "./file";
 import {GitRepo, gitUrlToProjectName} from "./gitRepo";
 import {config} from "./publishToGitConfig";
-import {IPackageJson, IPublishToGitConfig, readConfig} from "./configHelpers";
+import {IPublishToGitConfig, readConfig} from "./configHelpers";
 import {NodePackage} from "./nodePackage";
 
 
@@ -14,13 +14,17 @@ async function main(): Promise<void>
         console.error("Source directory argument not specified!");
         return;
     }
-
     const srcDir = new Directory(process.argv[2]);
 
-    const publishConfig = readConfig<IPublishToGitConfig>(new File(srcDir, "publishtogit.json"));
-    const packageConfig = readConfig<IPackageJson>(new File(srcDir, "package.json"));
+    const srcPackage: NodePackage = await NodePackage.fromDirectory(srcDir)
+    .catch((err) => {
+        console.log("The specified directory does not contain a Node.js package.");
+        throw err;
+    });
 
-    if (!publishConfig || !packageConfig)
+    const publishConfig = readConfig<IPublishToGitConfig>(new File(srcDir, "publishtogit.json"));
+
+    if (!publishConfig)
     {
         console.error("Cannot find publishtogit.json or package.json");
         return;
@@ -39,17 +43,16 @@ async function main(): Promise<void>
 
     // Get the tags in the repo so we can check if there is already one with
     // the version number.
-    const hasTag = await publishRepo.hasTag(packageConfig.version);
+    const hasTag = await publishRepo.hasTag(srcPackage.config.version);
     if (hasTag)
     {
-        throw new Error(`The publish repo already has the tag ${packageConfig.version}.  Publish aborted.`);
+        throw new Error(`The publish repo already has the tag ${srcPackage.config.version}.  Publish aborted.`);
     }
 
     // Delete all files in the publish repo.
     await deleteTrackedFiles(publishRepo);
 
-    const pkg: NodePackage = await NodePackage.fromDirectory(srcDir);
-    await pkg.publish(publishRepoDir, false);
+    await srcPackage.publish(publishRepoDir, false);
     await publishRepo.stageAll();
 
 

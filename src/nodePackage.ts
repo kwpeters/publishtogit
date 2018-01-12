@@ -3,12 +3,23 @@ import {Directory} from "./directory";
 import {File} from "./file";
 import {spawn} from "./spawn";
 import {config} from "./publishToGitConfig";
+import {readConfig} from "./configHelpers";
+
+
+export interface IPackageJson
+{
+    name: string;
+    version: string;
+    description: string;
+    repository: {type: "string", url: string};
+}
 
 
 export class NodePackage
 {
     //region Data members
     private _pkgDir: Directory;
+    private _config: IPackageJson | undefined;
     //endregion
 
 
@@ -61,6 +72,18 @@ export class NodePackage
     }
 
 
+    public get config(): IPackageJson
+    {
+        // If the package.json file has not been read yet, read it now.
+        if (this._config === undefined)
+        {
+            this._config = readConfig<IPackageJson>(new File(this._pkgDir, "package.json"));
+        }
+
+        return this._config!;
+    }
+
+
     /**
      * Packs this Node package into a .tgz file using "npm pack"
      * @method
@@ -89,7 +112,7 @@ export class NodePackage
 
 
     /**
-     * Publishes this Node.js package to the specified folder.
+     * Publishes this Node.js package to the specified directory.
      * @param publishDir - The directory that will contain the published version
      * of this package
      * @param emptyPublishDir - A flag indicating whether publishDir should be

@@ -3,6 +3,7 @@ import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
 import {tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";
 import {File} from "../src/file";
+import * as _ from "lodash";
 
 
 describe("GitUrlToProjectName", () => {
@@ -291,6 +292,19 @@ describe("GitRepo", () => {
                     done();
                 });
             });
+
+        });
+
+
+        describe("getBranches", () => {
+
+            it("will return the branches", async () => {
+                const repo = await GitRepo.create(new Directory(__dirname, ".."));
+                const branches = await repo.getBranches();
+                expect(branches.length).toBeGreaterThan(0);
+                expect(_.map(branches, "name")).toContain("master");
+            });
+
 
         });
 

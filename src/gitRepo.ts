@@ -3,7 +3,8 @@ import {File} from "./file";
 import {spawn} from "./spawn";
 import {readConfig} from "./configHelpers";
 import {IPackageJson} from "./nodePackage";
-
+import {GitBranch} from "./gitBranch";
+import * as _ from "lodash";
 
 /**
  * Extracts the project name from a Git URL
@@ -27,8 +28,10 @@ export class GitRepo
 {
     //region Private Data Members
     private _dir: Directory;
+    private _branches: Array<GitBranch> | undefined;
     //endregion
 
+    // TODO: Rename the following method to fromDirectory()
     /**
      * Creates a new GitRepo instance, pointing it at a directory containing the
      * wrapped repo.
@@ -254,6 +257,52 @@ export class GitRepo
         return spawn("git", ["push", remoteName, tagName], this._dir.toString())
         .then(() => {
             return this;
+        });
+    }
+
+
+    public getBranches(forceUpdate: boolean = false): Promise<Array<GitBranch>>
+    {
+        let updatePromise: Promise<void>;
+
+        if (this._branches === undefined || forceUpdate)
+        {
+            this._branches = undefined;
+
+            updatePromise = spawn("git", ["branch", "-a"], this._dir.toString())
+            .then((stdout) => {
+                const branches: Array<GitBranch> = _.chain(stdout.split("\n"))
+                .map(curLine => curLine.trim())
+                // Replace the "* " that precedes the current working branch
+                .map(curLine => curLine.replace(/^\*\s+/, ""))
+                // Filter out the line that looks like: remotes/origin/HEAD -> origin/master
+                .filter(curLine => !/^[\w/]+\/HEAD\s+->\s+[\w/]+$/.test(curLine))
+                .map(curLine => curLine.trim())
+                // Create an array of GitBranch objects
+                .map(curLine => GitBranch.fromString(this, curLine))
+                // Keep only the truthy objects returned from the above GitBranch.fromString().
+                .filter<GitBranch | undefined, GitBranch>(
+                    (val): val is GitBranch => val instanceof GitBranch
+                )
+                .value();
+
+                return branches;
+            })
+            .then((branches) => {
+                this._branches = branches;
+            });
+        }
+        else
+        {
+            // We don't need to update the cached branches.
+            updatePromise = Promise.resolve();
+        }
+
+        return updatePromise
+        .then(() => {
+            // If updatePromise resolved, we know that this._branches has been
+            // set.
+            return this._branches!;
         });
     }
 

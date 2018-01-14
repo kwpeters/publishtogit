@@ -28,7 +28,7 @@ import * as _ from "lodash";
 export function spawn(
     cmd: string,
     args: Array<string>,
-    cwd: string,
+    cwd?: string,
     description?: string,
     stdoutStream?: Writable,
     stderrStream?: Writable

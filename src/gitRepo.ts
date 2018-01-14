@@ -4,7 +4,7 @@ import {spawn} from "./spawn";
 import {readConfig} from "./configHelpers";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
-import * as _ from "lodash";
+
 
 /**
  * Extracts the project name from a Git URL
@@ -31,14 +31,13 @@ export class GitRepo
     private _branches: Array<GitBranch> | undefined;
     //endregion
 
-    // TODO: Rename the following method to fromDirectory()
     /**
      * Creates a new GitRepo instance, pointing it at a directory containing the
      * wrapped repo.
      * @param dir - The directory containing the repo
      * @return A Promise for the GitRepo.
      */
-    public static create(dir: Directory): Promise<GitRepo>
+    public static fromDirectory(dir: Directory): Promise<GitRepo>
     {
         return Promise.all([
             dir.exists(),                         // Directory specified by the user must exist
@@ -267,40 +266,25 @@ export class GitRepo
 
         if (this._branches === undefined || forceUpdate)
         {
+            // Invalidate the cache.  If this update fails, subsequent requests
+            // will have to update the cache.
             this._branches = undefined;
 
-            updatePromise = spawn("git", ["branch", "-a"], this._dir.toString())
-            .then((stdout) => {
-                const branches: Array<GitBranch> = _.chain(stdout.split("\n"))
-                .map(curLine => curLine.trim())
-                // Replace the "* " that precedes the current working branch
-                .map(curLine => curLine.replace(/^\*\s+/, ""))
-                // Filter out the line that looks like: remotes/origin/HEAD -> origin/master
-                .filter(curLine => !/^[\w/]+\/HEAD\s+->\s+[\w/]+$/.test(curLine))
-                .map(curLine => curLine.trim())
-                // Create an array of GitBranch objects
-                .map(curLine => GitBranch.fromString(this, curLine))
-                // Keep only the truthy objects returned from the above GitBranch.fromString().
-                .filter<GitBranch | undefined, GitBranch>(
-                    (val): val is GitBranch => val instanceof GitBranch
-                )
-                .value();
-
-                return branches;
-            })
-            .then((branches) => {
+            // The internal cache of branches needs to be updated.
+            updatePromise = GitBranch.enumerateGitRepoBranches(this)
+            .then((branches: Array<GitBranch>) => {
                 this._branches = branches;
             });
         }
         else
         {
-            // We don't need to update the cached branches.
+            // The internal cache does not need to be updated.
             updatePromise = Promise.resolve();
         }
 
         return updatePromise
         .then(() => {
-            // If updatePromise resolved, we know that this._branches has been
+            // Since updatePromise resolved, we know that this._branches has been
             // set.
             return this._branches!;
         });

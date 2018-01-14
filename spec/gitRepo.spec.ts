@@ -34,7 +34,7 @@ describe("GitRepo", () => {
         describe("create()", () => {
 
             it("will reject when not given a directory that is not a repo directory", (done) => {
-                GitRepo.create(new Directory(__dirname))
+                GitRepo.fromDirectory(new Directory(__dirname))
                 .catch(() => {
                     done();
                 });
@@ -42,8 +42,7 @@ describe("GitRepo", () => {
 
 
             it("will create a new instance when given a Git repo directory", (done) => {
-
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((inst) => {
                     expect(inst).toBeTruthy();
                     done();
@@ -111,7 +110,7 @@ describe("GitRepo", () => {
         describe("remotes()", () => {
 
             it("will return the correct map of remotes", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.remotes();
                 })
@@ -129,7 +128,7 @@ describe("GitRepo", () => {
 
 
             it("will return the name of the repo", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.name();
                 })
@@ -147,7 +146,7 @@ describe("GitRepo", () => {
 
 
             it("will return the directory of the repo", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     expect(repo.directory).toBeTruthy();
                     expect(repo.directory.absPath()).toContain("publish-to-git");
@@ -163,7 +162,7 @@ describe("GitRepo", () => {
 
 
             it("will list the tags applied to the repository", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.tags();
                 })
@@ -181,7 +180,7 @@ describe("GitRepo", () => {
 
 
             it("will return true for a tag that exists", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.hasTag("test");
                 })
@@ -193,7 +192,7 @@ describe("GitRepo", () => {
 
 
             it("will return false for a tag that does not exists", (done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     return repo.hasTag("xyzzy");
                 })
@@ -214,7 +213,7 @@ describe("GitRepo", () => {
 
 
             beforeEach((done) => {
-                GitRepo.create(new Directory(__dirname, ".."))
+                GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     theRepo = repo;
                     return repo.deleteTag("unittest_tag");
@@ -258,7 +257,7 @@ describe("GitRepo", () => {
 
 
             beforeEach(() => {
-                return GitRepo.create(new Directory(__dirname, ".."))
+                return GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     theRepo = repo;
                     return repo.deleteTag("unittest_tag");
@@ -299,7 +298,7 @@ describe("GitRepo", () => {
         describe("getBranches", () => {
 
             it("will return the branches", async () => {
-                const repo = await GitRepo.create(new Directory(__dirname, ".."));
+                const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
                 const branches = await repo.getBranches();
                 expect(branches.length).toBeGreaterThan(0);
                 expect(_.map(branches, "name")).toContain("master");

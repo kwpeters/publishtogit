@@ -308,6 +308,19 @@ describe("GitRepo", () => {
         });
 
 
+        describe("getCurrentBranch()", () => {
+
+
+            it("will return the current branch", async () => {
+                const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
+                const curBranch = await repo.getCurrentBranch();
+                expect(curBranch.name).toEqual("master");
+            });
+
+
+        });
+
+
     });
 
 

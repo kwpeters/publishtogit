@@ -291,6 +291,22 @@ export class GitRepo
     }
 
 
+    public async getCurrentBranch(): Promise<GitBranch>
+    {
+        // FUTURE: I don't think the following will work when in detached head state.
+        const stdout = await spawn("git", ["rev-parse", "--abbrev-ref", "HEAD"], this._dir.toString());
+        const branchName = stdout.trim();
+        const branch = await GitBranch.create(this, branchName);
+        if (!branch)
+        {
+            throw new Error("Could not get current branch.");
+        }
+
+        // All is good.
+        return branch;
+    }
+
+
     public stageAll(): Promise<GitRepo>
     {
         return spawn("git", ["add", "."], this._dir.toString())

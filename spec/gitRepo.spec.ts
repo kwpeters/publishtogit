@@ -1,28 +1,10 @@
 import * as path from "path";
-import {GitRepo, gitUrlToProjectName} from "../src/gitRepo";
-import {tmpDir} from "./specHelpers";
+import {GitRepo} from "../src/gitRepo";
+import {sampleRepoDir, tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";
 import {File} from "../src/file";
 import * as _ from "lodash";
-
-
-describe("GitUrlToProjectName", () => {
-
-    it("will return undefined when given an illegal Git URL", () => {
-
-        expect(() => {
-            // Missing .git at the end of the URL.
-            gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src");
-        }).toThrowError(/invalid Git URL/);
-    });
-
-
-    it("will return the proper name when given a valid URL", () => {
-        expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src.git")).toEqual("publish-to-git-src");
-    });
-
-
-});
+import {GitRepoPath} from "../src/GitRepoPath";
 
 
 describe("GitRepo", () => {
@@ -63,7 +45,15 @@ describe("GitRepo", () => {
 
             it("will clone the specified repository in the specified directory", () => {
 
-                return GitRepo.clone("https://github.com/kwpeters/publish-to-git-src.git", tmpDir)
+                //
+                // MUST: Look for calls to GitRepo.clone() and start cloning local repos, not ones on GitHub.
+                // Maybe leave one remote one to make sure it works.
+                //
+
+                const gitRepoPath = GitRepoPath.fromUrl("https://github.com/kwpeters/publish-to-git-src.git");
+                expect(gitRepoPath).toBeTruthy();
+
+                return GitRepo.clone(gitRepoPath!, tmpDir)
                 .then((repo: GitRepo) => {
 
                     expect(repo).toBeTruthy();
@@ -91,8 +81,10 @@ describe("GitRepo", () => {
 
 
             it("will return the files under version control", (done) => {
+                const gitRepoPath = GitRepoPath.fromUrl("https://github.com/kwpeters/publish-to-git-src.git");
+                expect(gitRepoPath).toBeTruthy();
 
-                GitRepo.clone("https://github.com/kwpeters/publish-to-git-src.git", tmpDir)
+                GitRepo.clone(gitRepoPath!, tmpDir)
                 .then((repo) => {
                     return repo.files();
                 })
@@ -155,6 +147,35 @@ describe("GitRepo", () => {
             });
 
 
+        });
+
+
+        describe("equals()", () => {
+
+
+            it("will return true for two GitRepos pointing at the same directory", async () => {
+                const repo1 = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
+                const repo2 = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
+                expect(repo1.equals(repo2)).toBeTruthy();
+            });
+
+
+            it("will return false for two GitRepos pointing at different directories", async () => {
+                tmpDir.emptySync();
+
+                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
+                expect(gitRepoPath).toBeTruthy();
+
+                const dir1 = new Directory(tmpDir, "dir1");
+                dir1.ensureExistsSync();
+
+                const dir2 = new Directory(tmpDir, "dir2");
+                dir2.ensureExistsSync();
+
+                const repo1 = await GitRepo.clone(gitRepoPath!, dir1);
+                const repo2 = await GitRepo.clone(gitRepoPath!, dir2);
+                expect(repo1.equals(repo2)).toBeFalsy();
+            });
         });
 
 

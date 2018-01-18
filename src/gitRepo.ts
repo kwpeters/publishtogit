@@ -4,23 +4,23 @@ import {spawn} from "./spawn";
 import {readConfig} from "./configHelpers";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
+import {GitRepoPath} from "./GitRepoPath";
 
 
 /**
- * Extracts the project name from a Git URL
- * @param gitUrl - The Git URL for a repository
- * @return The name of the project.  This method will throw an Error if the
- * provided URL is invalid.
+ * Determines whether dir is a directory containing a Git repository.
+ * @param dir - The directory to inspect
+ * @return A promise for a boolean indicating whether dir contains a Git
+ * repository.  This promise will never reject.
  */
-export function gitUrlToProjectName(gitUrl: string): string
-{
-    const match = gitUrl.match(/.*\/(.*)\.git$/);
-    if (!match)
-    {
-        throw new Error("Tried to get project name from invalid Git URL.");
-    }
+export async function isGitRepoDir(dir: Directory): Promise<boolean> {
 
-    return match[1];
+    const [dirExists, dotGitExists] = await Promise.all([
+        dir.exists(),                        // The directory exists
+        new Directory(dir, ".git").exists()  // The directory contains a .git directory
+    ]);
+
+    return Boolean(dirExists && dotGitExists);
 }
 
 
@@ -31,41 +31,37 @@ export class GitRepo
     private _branches: Array<GitBranch> | undefined;
     //endregion
 
+
     /**
      * Creates a new GitRepo instance, pointing it at a directory containing the
      * wrapped repo.
      * @param dir - The directory containing the repo
      * @return A Promise for the GitRepo.
      */
-    public static fromDirectory(dir: Directory): Promise<GitRepo>
+    public static async fromDirectory(dir: Directory): Promise<GitRepo>
     {
-        return Promise.all([
-            dir.exists(),                         // Directory specified by the user must exist
-            new Directory(dir, ".git").exists()   // The directory must contain a .git folder
-        ])
-        .then((results) => {
-            if (!results[0] || !results[1])
-            {
-                throw new Error("Path does not exist or is not a Git repo.");
-            }
+        const isGitRepo = await isGitRepoDir(dir);
+        if (isGitRepo)
+        {
             return new GitRepo(dir);
-        });
+        }
+        else
+        {
+            throw new Error("Path does not exist or is not a Git repo.");
+        }
     }
 
 
     /**
      * Clones a Git repo at the specified location.
-     * @param gitUrl - The URL to the remote repo
-     * @param parentDir - The parent directory where the repo will be cloned
+     * @param gitRepoPath - The path to the repository to be cloned
+     * @param parentDir - The parent directory where the repo will be placed.
+     * The repo will be cloned into a subdirectory named after the project.
      * @return A promise for the cloned Git repo.
      */
-    public static clone(gitUrl: string, parentDir: Directory): Promise<GitRepo>
+    public static clone(gitRepoPath: GitRepoPath, parentDir: Directory): Promise<GitRepo>
     {
-        const projName = gitUrlToProjectName(gitUrl);
-        if (projName === undefined)
-        {
-            return Promise.reject(new Error("Invalid Git URL."));
-        }
+        const projName = gitRepoPath.getProjectName();
 
         const repoDir = new Directory(parentDir, projName);
 
@@ -79,7 +75,7 @@ export class GitRepo
         .then(() => {
             return spawn(
                 "git",
-                ["clone", gitUrl, projName],
+                ["clone", gitRepoPath.toString(), projName],
                 parentDir.toString());
         })
         .then(() => {
@@ -107,6 +103,19 @@ export class GitRepo
     public get directory(): Directory
     {
         return this._dir;
+    }
+
+
+    /**
+     * Determines whether this GitRepo is equal to another GitRepo.  Two
+     * instances are considered equal if they point to the same directory.
+     * @method
+     * @param other - The other GitRepo to compare with
+     * @return Whether the two GitRepo instances are equal
+     */
+    public equals(other: GitRepo): boolean
+    {
+        return this._dir.equals(other._dir);
     }
 
 
@@ -164,7 +173,11 @@ export class GitRepo
             if (remoteNames.length > 0)
             {
                 const remoteUrl = remotes[remoteNames[0]];
-                return gitUrlToProjectName(remoteUrl);
+                const gitRepoPath = GitRepoPath.fromUrl(remoteUrl);
+                if (gitRepoPath)
+                {
+                    return gitRepoPath.getProjectName();
+                }
             }
         })
         .then((projName) => {

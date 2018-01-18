@@ -122,6 +122,19 @@ gulp.task("build", () => {
 });
 
 
+gulp.task("compile", () => {
+    return clean()
+    .then(() => {
+        // Do not build if there are TSLint errors.
+        return runTslint(true)
+    })
+    .then(() => {
+        // Everything seems ok.  Go ahead and compile.
+        return compileTypeScript();
+    });
+});
+
+
 function compileTypeScript() {
 
     // The gulp-typescript package interacts correctly with gulp if you

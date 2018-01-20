@@ -1,6 +1,6 @@
 import * as path from "path";
 import {GitRepo} from "../src/gitRepo";
-import {sampleRepoDir, tmpDir} from "./specHelpers";
+import {sampleRepoDir, sampleRepoUrl, tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";
 import {File} from "../src/file";
 import * as _ from "lodash";
@@ -43,24 +43,28 @@ describe("GitRepo", () => {
             });
 
 
-            it("will clone the specified repository in the specified directory", () => {
+            // MUST: Stop cloning from the Internet elsewhere.
 
-                //
-                // MUST: Look for calls to GitRepo.clone() and start cloning local repos, not ones on GitHub.
-                // Maybe leave one remote one to make sure it works.
-                //
-
-                const gitRepoPath = GitRepoPath.fromUrl("https://github.com/kwpeters/publish-to-git-src.git");
+            it("will clone a repository on the Internet", async () => {
+                const gitRepoPath = GitRepoPath.fromUrl(sampleRepoUrl);
                 expect(gitRepoPath).toBeTruthy();
 
-                return GitRepo.clone(gitRepoPath!, tmpDir)
-                .then((repo: GitRepo) => {
+                const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
+                expect(repo).toBeTruthy();
 
-                    expect(repo).toBeTruthy();
+                expect(Directory.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo"))).toBeTruthy();
+                expect(File.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo", "README.md"))).toBeTruthy();
+            });
 
-                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "publish-to-git-src"))).toBeTruthy();
-                    expect(File.existsSync(path.join(tmpDir.absPath(), "publish-to-git-src", "package.json"))).toBeTruthy();
-                });
+
+            it("will clone a repository from a local directory", async () => {
+                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
+                expect(gitRepoPath).toBeTruthy();
+                const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
+
+                expect(repo).toBeTruthy();
+                expect(Directory.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo"))).toBeTruthy();
+                expect(File.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo", "README.md"))).toBeTruthy();
             });
 
 

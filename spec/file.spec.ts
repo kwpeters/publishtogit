@@ -7,63 +7,6 @@ import {Directory} from "../src/directory";
 describe("File", () => {
 
 
-    describe("static", () => {
-
-
-        describe("exists()", () => {
-
-
-            it("will resolve to a truthy stats object for an existing file", () => {
-                return File.exists(__filename)
-                .then((stats) => {
-                    expect(stats).toBeTruthy();
-                });
-            });
-
-
-            it("will resolve to false for a file that does not exist", () => {
-                return File.exists(path.join(__dirname, "xyzzy.txt"))
-                .then((stats) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-            it("will resolve to false for a directory with the specified path", () => {
-                return File.exists(__dirname)
-                .then((stats) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-        });
-
-
-        describe("existsSync()", () => {
-
-
-            it("will return a truthy fs.Stats object for an existing file", () => {
-                expect(File.existsSync(__filename)).toBeTruthy();
-            });
-
-
-            it("will return false for a file that does not exist", () => {
-                expect(File.existsSync(path.join(__dirname, "xyzzy.txt"))).toBeFalsy();
-            });
-
-
-            it("will return false for a directory with the specified path", () => {
-                expect(File.existsSync(__dirname)).toBeFalsy();
-            });
-
-
-        });
-
-
-    });
-
-
     describe("instance", () => {
 
 

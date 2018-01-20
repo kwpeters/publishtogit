@@ -52,8 +52,8 @@ describe("GitRepo", () => {
                 const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
                 expect(repo).toBeTruthy();
 
-                expect(Directory.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo"))).toBeTruthy();
-                expect(File.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo", "README.md"))).toBeTruthy();
+                expect(new Directory(tmpDir, "sampleGitRepo").existsSync()).toBeTruthy();
+                expect(new File(tmpDir, "sampleGitRepo", "README.md").existsSync()).toBeTruthy();
             });
 
 
@@ -63,8 +63,8 @@ describe("GitRepo", () => {
                 const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
 
                 expect(repo).toBeTruthy();
-                expect(Directory.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo"))).toBeTruthy();
-                expect(File.existsSync(path.join(tmpDir.absPath(), "sampleGitRepo", "README.md"))).toBeTruthy();
+                expect(new Directory(tmpDir, "sampleGitRepo").existsSync()).toBeTruthy();
+                expect(new File(tmpDir, "sampleGitRepo", "README.md").existsSync()).toBeTruthy();
             });
 
 

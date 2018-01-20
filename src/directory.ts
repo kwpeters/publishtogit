@@ -26,18 +26,6 @@ export class Directory
     //endregion
 
 
-    public static exists(dirPath: string): Promise<fs.Stats | undefined>
-    {
-        return new Directory(dirPath).exists();
-    }
-
-
-    public static existsSync(dirPath: string): fs.Stats | undefined
-    {
-        return new Directory(dirPath).existsSync();
-    }
-
-
     public constructor(pathPart: PathPart, ...pathParts: PathPart[])
     {
         const allParts: PathPart[] = [pathPart].concat(pathParts);

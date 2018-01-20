@@ -7,62 +7,6 @@ import {Directory, IDirectoryContents} from "../src/directory";
 describe("Directory", () => {
 
 
-    describe("static", () => {
-
-
-        describe("exists()", () => {
-
-
-            it("will resolve to a truthy fs.Stats object for an existing directory", () => {
-                return Directory.exists(__dirname)
-                .then((stats) => {
-                    expect(stats).toBeTruthy();
-                });
-            });
-
-
-            it("will resolve to false for a directory that does not exist", () => {
-                return Directory.exists(path.join(__dirname, "xyzzy"))
-                .then((stats) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-            it("will resolve to false for a file with the specified path", () => {
-                return Directory.exists(__filename)
-                .then((stats) => {
-                    expect(stats).toBeFalsy();
-                });
-            });
-
-
-        });
-
-
-        describe("existsSync()", () => {
-
-
-            it("will return true for an existing directory", () => {
-                expect(Directory.existsSync(__dirname)).toBeTruthy();
-            });
-
-
-            it("will resolve to false for a directory that does not exist", () => {
-                expect(Directory.existsSync(path.join(__dirname, "xyzzy"))).toBeFalsy();
-            });
-
-
-            it("will resolve to false for a file with the specified path", () => {
-                expect(Directory.existsSync(__filename)).toBeFalsy();
-            });
-
-        });
-
-
-    });
-
-
     describe("instance", () => {
 
 
@@ -270,7 +214,7 @@ describe("Directory", () => {
 
                 return dir.ensureExists()
                 .then(() => {
-                    expect(Directory.existsSync(dirPath)).toBeTruthy();
+                    expect(new Directory(dirPath).existsSync()).toBeTruthy();
                 });
             });
 
@@ -281,7 +225,7 @@ describe("Directory", () => {
 
                 return dir.ensureExists()
                 .then(() => {
-                    expect(Directory.existsSync(dirPath)).toBeTruthy();
+                    expect(new Directory(dirPath).existsSync()).toBeTruthy();
                 });
             });
 
@@ -296,7 +240,7 @@ describe("Directory", () => {
                 const dirPath = path.join(tmpDir.absPath(), "dir1", "dir2", "dir3");
                 const dir = new Directory(dirPath);
                 dir.ensureExistsSync();
-                expect(Directory.existsSync(dirPath)).toBeTruthy();
+                expect(new Directory(dirPath).existsSync()).toBeTruthy();
             });
 
 
@@ -304,7 +248,7 @@ describe("Directory", () => {
                 const dirPath = path.join("tmp", "dir1", "dir2", "dir3");
                 const dir = new Directory(dirPath);
                 dir.ensureExistsSync();
-                expect(Directory.existsSync(dirPath)).toBeTruthy();
+                expect(new Directory(dirPath).existsSync()).toBeTruthy();
             });
 
 
@@ -559,8 +503,8 @@ describe("Directory", () => {
                     expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
                     expect(contents.files.length).toEqual(0);
 
-                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
-                    expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
+                    expect(new Directory(tmpDir, "dirA", "dirBa").existsSync()).toBeFalsy();
+                    expect(new Directory(tmpDir, "dirA", "dirBb").existsSync()).toBeFalsy();
                     expect(file.existsSync()).toBeTruthy();
                 });
             });
@@ -609,8 +553,8 @@ describe("Directory", () => {
                 expect(contents.subdirs[0].absPath()).toEqual(path.join(tmpDir.absPath(), "dirA"));
                 expect(contents.files.length).toEqual(0);
 
-                expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBa"))).toBeFalsy();
-                expect(Directory.existsSync(path.join(tmpDir.absPath(), "dirA", "dirBb"))).toBeFalsy();
+                expect(new Directory(tmpDir, "dirA", "dirBa").existsSync()).toBeFalsy();
+                expect(new Directory(tmpDir, "dirA", "dirBb").existsSync()).toBeFalsy();
                 expect(file.existsSync()).toBeTruthy();
             });
 

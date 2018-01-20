@@ -18,18 +18,6 @@ export class File
     //endregion
 
 
-    public static exists(filePath: string): Promise<fs.Stats | undefined>
-    {
-        return new File(filePath).exists();
-    }
-
-
-    public static existsSync(filePath: string): fs.Stats | undefined
-    {
-        return new File(filePath).existsSync();
-    }
-
-
     public constructor(pathPart: PathPart, ...pathParts: PathPart[])
     {
         const allParts: PathPart[] = [pathPart].concat(pathParts);

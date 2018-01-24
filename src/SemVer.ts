@@ -1,8 +1,21 @@
+import * as _ from "lodash";
+
 const SEMVER_REGEXP = /^(\d+)\.(\d+)\.(\d+)$/;
 
 
 export class SemVer
 {
+    public static sort(arr: Array<SemVer>): Array<SemVer>
+    {
+        return _.sortBy<SemVer>(
+            arr,
+            [
+                (semver: SemVer) => semver.major,
+                (semver: SemVer) => semver.minor,
+                (semver: SemVer) => semver.patch
+            ]
+        );
+    }
 
     public static fromString(str: string): SemVer | undefined
     {
@@ -32,6 +45,12 @@ export class SemVer
         this._major = major;
         this._minor = minor;
         this._patch = patch;
+    }
+
+
+    public toString(): string
+    {
+        return this.getPatchVersionString();
     }
 
 

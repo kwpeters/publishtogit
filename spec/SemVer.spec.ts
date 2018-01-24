@@ -26,6 +26,86 @@ describe("SemVer", () => {
         });
 
 
+        describe("sort()", () => {
+
+
+            it("will sort an array of SemVer instances", () => {
+                const semvers: Array<SemVer> = [
+                    SemVer.fromString("3.3.1")!,
+                    SemVer.fromString("3.3.3")!,
+                    SemVer.fromString("3.3.2")!,
+
+                    SemVer.fromString("3.2.1")!,
+                    SemVer.fromString("3.2.3")!,
+                    SemVer.fromString("3.2.2")!,
+
+                    SemVer.fromString("3.1.1")!,
+                    SemVer.fromString("3.1.3")!,
+                    SemVer.fromString("3.1.2")!,
+
+                    SemVer.fromString("2.3.1")!,
+                    SemVer.fromString("2.3.3")!,
+                    SemVer.fromString("2.3.2")!,
+
+                    SemVer.fromString("2.2.1")!,
+                    SemVer.fromString("2.2.3")!,
+                    SemVer.fromString("2.2.2")!,
+
+                    SemVer.fromString("2.1.1")!,
+                    SemVer.fromString("2.1.3")!,
+                    SemVer.fromString("2.1.2")!,
+
+                    SemVer.fromString("1.3.1")!,
+                    SemVer.fromString("1.3.3")!,
+                    SemVer.fromString("1.3.2")!,
+
+                    SemVer.fromString("1.2.1")!,
+                    SemVer.fromString("1.2.3")!,
+                    SemVer.fromString("1.2.2")!,
+
+                    SemVer.fromString("1.1.1")!,
+                    SemVer.fromString("1.1.3")!,
+                    SemVer.fromString("1.1.2")!
+                ];
+
+                const sorted = SemVer.sort(semvers);
+                let idx: number = 0;
+
+                expect(sorted[idx++].toString()).toEqual("1.1.1");
+                expect(sorted[idx++].toString()).toEqual("1.1.2");
+                expect(sorted[idx++].toString()).toEqual("1.1.3");
+                expect(sorted[idx++].toString()).toEqual("1.2.1");
+                expect(sorted[idx++].toString()).toEqual("1.2.2");
+                expect(sorted[idx++].toString()).toEqual("1.2.3");
+                expect(sorted[idx++].toString()).toEqual("1.3.1");
+                expect(sorted[idx++].toString()).toEqual("1.3.2");
+                expect(sorted[idx++].toString()).toEqual("1.3.3");
+
+                expect(sorted[idx++].toString()).toEqual("2.1.1");
+                expect(sorted[idx++].toString()).toEqual("2.1.2");
+                expect(sorted[idx++].toString()).toEqual("2.1.3");
+                expect(sorted[idx++].toString()).toEqual("2.2.1");
+                expect(sorted[idx++].toString()).toEqual("2.2.2");
+                expect(sorted[idx++].toString()).toEqual("2.2.3");
+                expect(sorted[idx++].toString()).toEqual("2.3.1");
+                expect(sorted[idx++].toString()).toEqual("2.3.2");
+                expect(sorted[idx++].toString()).toEqual("2.3.3");
+
+                expect(sorted[idx++].toString()).toEqual("3.1.1");
+                expect(sorted[idx++].toString()).toEqual("3.1.2");
+                expect(sorted[idx++].toString()).toEqual("3.1.3");
+                expect(sorted[idx++].toString()).toEqual("3.2.1");
+                expect(sorted[idx++].toString()).toEqual("3.2.2");
+                expect(sorted[idx++].toString()).toEqual("3.2.3");
+                expect(sorted[idx++].toString()).toEqual("3.3.1");
+                expect(sorted[idx++].toString()).toEqual("3.3.2");
+                expect(sorted[idx++].toString()).toEqual("3.3.3");
+            });
+
+
+        });
+
+
     });
 
 
@@ -38,6 +118,12 @@ describe("SemVer", () => {
             expect(semver!.major).toEqual(1);
             expect(semver!.minor).toEqual(2);
             expect(semver!.patch).toEqual(3);
+        });
+
+
+        it("toString()", () => {
+            const semver = SemVer.fromString("1.2.3");
+            expect(semver!.getPatchVersionString()).toEqual("1.2.3");
         });
 
 

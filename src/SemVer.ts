@@ -71,4 +71,43 @@ export class SemVer
     }
 
 
+    public compare(other: SemVer): -1 | 0 | 1
+    {
+        if (this._major < other._major)
+        {
+            return -1;
+        }
+        else if (this._major > other._major)
+        {
+            return 1;
+        }
+        else
+        {
+            // Major numbers are equal.
+            if (this._minor < other._minor)
+            {
+                return -1;
+            }
+            else if (this._minor > other._minor)
+            {
+                return 1;
+            }
+            else
+            {
+                // Major and minor are equal.
+                if (this._patch < other._patch)
+                {
+                    return -1;
+                }
+                else if (this._patch > other._patch)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+    }
 }

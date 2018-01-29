@@ -5,6 +5,7 @@ import {readConfig} from "./configHelpers";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
 import {GitRepoPath} from "./GitRepoPath";
+import * as _ from "lodash";
 
 
 /**
@@ -124,11 +125,26 @@ export class GitRepo
      * @return A Promise for an array of files under Git version control.  Each
      * string is the file's *relative* path within the repo.
      */
+    // TODO: Make the following return an array of File objects.
     public files(): Promise<Array<string>>
     {
         return spawn("git", ["ls-files"], this._dir.toString())
         .then((stdout) => {
             return stdout.split("\n");
+        });
+    }
+
+
+    // TODO: Write unit tests for this method and make sure the files have the
+    // correct preceding path.
+    public modifiedFiles(): Promise<Array<File>>
+    {
+        return spawn("git", ["ls-files", "-m"], this._dir.toString())
+        .then((stdout) => {
+            const fileNames = stdout.split("\n");
+            return _.map(fileNames, (curFileName) => {
+                return new File(this._dir, curFileName);
+            });
         });
     }
 
@@ -317,6 +333,16 @@ export class GitRepo
 
         // All is good.
         return branch;
+    }
+
+
+    public async checkout(branch: GitBranch, shouldCreate: boolean): Promise<void>
+    {
+        const args = shouldCreate ?
+            ["checkout", "-b", branch.name] :
+            ["checkout", branch.name];
+
+        await spawn("git", args, this._dir.toString());
     }
 
 

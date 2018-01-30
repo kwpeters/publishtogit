@@ -3,7 +3,7 @@ import {Directory} from "./directory";
 import {File} from "./file";
 import {GitRepo} from "./gitRepo";
 import {config as globalConfig} from "./publishToGitConfig";
-import {IPublishToGitConfig, readConfig} from "./configHelpers";
+import {IPublishToGitConfig} from "./configHelpers";
 import {NodePackage} from "./nodePackage";
 import {GitRepoPath, gitUrlToProjectName} from "./GitRepoPath";
 import {SemVer} from "./SemVer";
@@ -11,7 +11,7 @@ import {GitBranch} from "./gitBranch";
 
 
 async function getSrc():
-Promise<{dir: Directory, repo: GitRepo,pkg: NodePackage, version: SemVer, publishToGitConfig: IPublishToGitConfig}>
+Promise<{dir: Directory, repo: GitRepo, pkg: NodePackage, version: SemVer, publishToGitConfig: IPublishToGitConfig}>
 {
     // Get the source project directory from the command line arguments.  If not
     // present, assume the current working directory.
@@ -38,7 +38,7 @@ Promise<{dir: Directory, repo: GitRepo,pkg: NodePackage, version: SemVer, publis
         return Promise.reject(new Error(`Could not find file ${configFile.toString()}.`));
     }
 
-    const publishToGitConfig = readConfig<IPublishToGitConfig>(configFile);
+    const publishToGitConfig = configFile.readJsonSync<IPublishToGitConfig>();
     if (!publishToGitConfig) {
         return Promise.reject(new Error(`Could not read configuration from ${configFile.toString()}.`));
     }
@@ -108,7 +108,7 @@ async function main(): Promise<void>
     // Remove all files under version control and prune directories that are
     // empty.
     await deleteTrackedFiles(publishRepo);
-    await publishDir.prune()
+    await publishDir.prune();
 
     // Publish the source repo to the publish directory.
     await src.pkg.publish(publishDir, false);

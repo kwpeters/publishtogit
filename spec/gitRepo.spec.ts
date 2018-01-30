@@ -1,4 +1,3 @@
-import * as path from "path";
 import {GitRepo} from "../src/gitRepo";
 import {sampleRepoDir, sampleRepoUrl, tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";

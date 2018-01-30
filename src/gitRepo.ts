@@ -1,7 +1,6 @@
 import {Directory} from "./directory";
 import {File} from "./file";
 import {spawn} from "./spawn";
-import {readConfig} from "./configHelpers";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
 import {GitRepoPath} from "./GitRepoPath";
@@ -202,7 +201,7 @@ export class GitRepo
             }
 
             // Look for the project name in package.json.
-            const packageJson = readConfig<IPackageJson>(new File(this._dir, "package.json"));
+            const packageJson = new File(this._dir, "package.json").readJsonSync<IPackageJson>();
             if (packageJson) {
                 return packageJson.name;
             }

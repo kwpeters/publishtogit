@@ -3,7 +3,6 @@ import {Directory} from "./directory";
 import {File} from "./file";
 import {spawn} from "./spawn";
 import {config} from "./publishToGitConfig";
-import {readConfig} from "./configHelpers";
 
 
 export interface IPackageJson
@@ -77,7 +76,7 @@ export class NodePackage
         // If the package.json file has not been read yet, read it now.
         if (this._config === undefined)
         {
-            this._config = readConfig<IPackageJson>(new File(this._pkgDir, "package.json"));
+            this._config = new File(this._pkgDir, "package.json").readJsonSync<IPackageJson>();
         }
 
         return this._config!;

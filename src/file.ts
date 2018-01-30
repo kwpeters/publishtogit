@@ -9,6 +9,11 @@ import {PathPart, reducePathParts} from "./pathHelpers";
 const unlinkAsync = promisify1<void, string>(fs.unlink);
 const statAsync   = promisify1<fs.Stats, string>(fs.stat);
 const utimesAsync = promisify3<void, string, string | number | Date, string | number | Date>(fs.utimes);
+const writeFileAsync = promisify3<
+    void,
+    fs.PathLike | number, any,
+    { encoding?: string | null; mode?: number | string; flag?: string; } | string | undefined | null
+    >(fs.writeFile);
 
 
 export class File
@@ -416,7 +421,7 @@ export class File
 
 
     /**
-     * Write text to this file, replacing the file if it exists.  If any parent
+     * Writes text to this file, replacing the file if it exists.  If any parent
      * directories do not exist, they are created.
      * @param text - The new contents of this file
      * @return A Promise that is resolved when the file has been written.
@@ -425,12 +430,7 @@ export class File
     {
         return this.directory.ensureExists()
         .then(() => {
-            fs.writeFile(this._filePath, text, (err) => {
-                if (err)
-                {
-                    throw err;
-                }
-            });
+            return writeFileAsync(this._filePath, text, "utf8");
         });
     }
 
@@ -444,6 +444,31 @@ export class File
     {
         this.directory.ensureExistsSync();
         fs.writeFileSync(this._filePath, text);
+    }
+
+
+    /**
+     * Writes JSON data to this file, replacing the file if it exists.  If any
+     * parent directories do not exist, they are created.
+     * @param data - The data to be stringified and written
+     * @return A Promise that is resolved when the file has been written
+     */
+    public writeJson(data: object): Promise<void>
+    {
+        const jsonText = JSON.stringify(data, undefined, 4);
+        return this.write(jsonText);
+    }
+
+
+    /**
+     * Writes JSON data to this file, replacing the file if it exists.  If any
+     * parent directories do not exist, they are created.
+     * @param data - The data to be stringified and written
+     */
+    public writeJsonSync(data: object): void
+    {
+        const jsonText = JSON.stringify(data, undefined, 4);
+        return this.writeSync(jsonText);
     }
 
 
@@ -478,6 +503,29 @@ export class File
         return fs.readFileSync(this._filePath, {encoding: "utf8"});
     }
 
+
+    /**
+     * Reads JSON data from this file.  Rejects if this file does not exist.
+     * @return {Promise<T>} A promise for the parsed data contained in this file
+     */
+    public readJson<T>(): Promise<T>
+    {
+        return this.read()
+        .then((text) => {
+            return JSON.parse(text);
+        });
+    }
+
+
+    /**
+     * Reads JSON data from this file.  Throws if this file does not exist.
+     * @return {T} The parsed data contained in this file
+     */
+    public readJsonSync<T>(): T
+    {
+        const text = this.readSync();
+        return JSON.parse(text);
+    }
 
 }
 
@@ -545,7 +593,7 @@ function copyFile(sourceFilePath: string, destFilePath: string, options?: ICopyO
                 //
                 // Note:  Setting the timestamps on dest requires us to specify
                 // the timestamp in seconds (not milliseconds).  When we divide
-                // by 1000 below and truncation happes, we are actually setting
+                // by 1000 below and truncation happens, we are actually setting
                 // dest's timestamps *before* those of of source.
                 //
                 return utimesAsync(destFilePath, srcStats.atime.valueOf() / 1000, srcStats.mtime.valueOf() / 1000);

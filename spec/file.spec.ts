@@ -10,6 +10,11 @@ describe("File", () => {
     describe("instance", () => {
 
 
+        beforeEach(() => {
+            tmpDir.emptySync();
+        });
+
+
         describe("dirName, baseName, fileName, extName", () => {
 
 
@@ -859,6 +864,65 @@ describe("File", () => {
         });
 
 
+        describe("writeJson()", () => {
+
+
+            it("creates the necessary directories", (done) => {
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.json");
+
+                file.writeJson({foo: "bar"})
+                .then(() => {
+                    expect(dir.existsSync()).toBeTruthy();
+                    expect(file.existsSync()).toBeTruthy();
+                    done();
+                });
+            });
+
+
+            it("writes the specified JSON to the file", (done) => {
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.json");
+
+                file.writeJson({foo: "bar"})
+                .then(() => {
+                    return file.readJson<any>();
+                })
+                .then((data) => {
+                    expect(data.foo).toEqual("bar");
+                    done();
+                });
+            });
+
+        });
+
+
+        describe("writeJsonSync()", () => {
+
+
+            it("creates the necessary directories", () => {
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
+
+                file.writeJsonSync({foo: "bar"});
+                expect(dir.existsSync()).toBeTruthy();
+                expect(file.existsSync()).toBeTruthy();
+            });
+
+
+            it("writes the specified JSON to the file", () => {
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
+
+                file.writeJsonSync({foo: "bar"});
+
+                expect(file.readJsonSync<any>().foo).toEqual("bar");
+            });
+
+
+        });
+
+
         describe("read()", () => {
 
 
@@ -906,6 +970,56 @@ describe("File", () => {
                     file.readSync();
                 }).toThrow();
             });
+        });
+
+
+        describe("readJson()", () => {
+
+
+            it("can read the contents of a file", (done) => {
+                const dir = new Directory(tmpDir, "foo", "bar");
+                const file = new File(dir, "file.txt");
+                file.writeSync(JSON.stringify({foo: "bar"}));
+
+                file.readJson<{foo: string}>()
+                .then((data) => {
+                    expect(data.foo).toEqual("bar");
+                    done();
+                });
+            });
+
+
+            it("will reject if the file being read does not exist", (done) => {
+                const file = new File(tmpDir, "xyzzy.txt");
+
+                file.readJson()
+                .catch(() => {
+                    done();
+                });
+            });
+
+
+            describe("readJsonSync()", () => {
+
+
+                it("can read the contents of a file", () => {
+                    const dir = new Directory(tmpDir, "foo", "bar");
+                    const file = new File(dir, "file.txt");
+                    file.writeSync(JSON.stringify({foo: "bar"}));
+
+                    expect(file.readJsonSync<{foo: string}>().foo).toEqual("bar");
+                });
+
+
+                it("will throw if the file being read does not exist", () => {
+                    const file = new File(tmpDir, "xyzzy.txt");
+                    expect(() => {
+                        file.readJsonSync();
+                    }).toThrow();
+                });
+            });
+
+
         });
 
 

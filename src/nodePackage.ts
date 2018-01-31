@@ -10,7 +10,7 @@ export interface IPackageJson
     name: string;
     version: string;
     description: string;
-    repository: {type: "string", url: string};
+    repository: {type: string, url: string};
 }
 
 

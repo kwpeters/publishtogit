@@ -4,14 +4,20 @@ import {File} from "./file";
 import {GitRepo} from "./gitRepo";
 import {config as globalConfig} from "./publishToGitConfig";
 import {IPublishToGitConfig} from "./configHelpers";
-import {NodePackage} from "./nodePackage";
+import {IPackageJson, NodePackage} from "./nodePackage";
 import {GitRepoPath, gitUrlToProjectName} from "./GitRepoPath";
 import {SemVer} from "./SemVer";
 import {GitBranch} from "./gitBranch";
 
 
 async function getSrc():
-Promise<{dir: Directory, repo: GitRepo, pkg: NodePackage, version: SemVer, publishToGitConfig: IPublishToGitConfig}>
+Promise<{
+    dir: Directory,
+    repo: GitRepo,
+    pkg: NodePackage,
+    version: SemVer,
+    publishToGitConfig: IPublishToGitConfig
+}>
 {
     // Get the source project directory from the command line arguments.  If not
     // present, assume the current working directory.
@@ -63,24 +69,32 @@ async function main(): Promise<void>
 {
     const src = await getSrc();
 
+    //
     // Make sure the global tmpDir exists.
+    //
     globalConfig.tmpDir.ensureExistsSync();
 
+    //
     // Figure out what the publish repo directory and nuke it if it already
     // exists.
+    //
     const publishProjName = gitUrlToProjectName(src.publishToGitConfig.publishRepository);
     const publishDir = new Directory(globalConfig.tmpDir, publishProjName);
     publishDir.deleteSync();
 
+    //
     // Clone the publish repo.
+    //
     const publishRepoPath = GitRepoPath.fromUrl(src.publishToGitConfig.publishRepository);
     if (!publishRepoPath) {
         throw new Error(`Invalid publish repo URL "${src.publishToGitConfig.publishRepository}".`);
     }
     const publishRepo = await GitRepo.clone(publishRepoPath, globalConfig.tmpDir);
 
+    //
     // Check to see if the current version has already been published so
     // that we can return an error before taking any further action.
+    //
     const hasTag = await publishRepo.hasTag(src.version.getPatchVersionString());
     if (hasTag)
     {
@@ -89,7 +103,11 @@ async function main(): Promise<void>
         throw new Error(msg);
     }
 
-    // Checkout a branch named after the major version.
+    //
+    // To make viewing differences between releases a little easier, checkout
+    // the branch named after the major version and then the major.minor
+    // version.
+    //
     const majorBranch = await GitBranch.create(publishRepo, src.version.getMajorVersionString());
     if (!majorBranch)
     {
@@ -97,7 +115,6 @@ async function main(): Promise<void>
     }
     await publishRepo.checkout(majorBranch, true);
 
-    // Checkout a branch named after the minor version.
     const minorBranch = await GitBranch.create(publishRepo, src.version.getMinorVersionString());
     if (!minorBranch)
     {
@@ -105,18 +122,29 @@ async function main(): Promise<void>
     }
     await publishRepo.checkout(minorBranch, true);
 
+    //
     // Remove all files under version control and prune directories that are
     // empty.
+    //
     await deleteTrackedFiles(publishRepo);
     await publishDir.prune();
 
+    //
     // Publish the source repo to the publish directory.
+    //
     await src.pkg.publish(publishDir, false);
 
+    //
+    // Modify the package.json file so that the publish repo package
+    // - is named after the publish repo
+    // - the repository url points to the publish repo instead of the source repo
+    //
+    const publishPackageJsonFile = new File(publishDir, "package.json");
+    const publishPackageJson = publishPackageJsonFile.readJsonSync<IPackageJson>();
+    publishPackageJson.repository.url = src.publishToGitConfig.publishRepository;
+    publishPackageJson.name = gitUrlToProjectName(src.publishToGitConfig.publishRepository)
+    publishPackageJsonFile.writeJsonSync(publishPackageJson);
 
-    // Modify the package.json so that it
-    // - name is updated
-    // - points to the correct git repo url
     // Commit
     // Drop a tag with the version number (publishRepo.createTag())
     // Push the branch and the tag (publishRepo.pushTag())

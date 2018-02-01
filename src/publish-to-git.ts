@@ -108,18 +108,11 @@ async function main(): Promise<void>
     // the branch named after the major version and then the major.minor
     // version.
     //
+    // TODO: Need to push created branch upstream.
     const majorBranch = await GitBranch.create(publishRepo, src.version.getMajorVersionString());
-    if (!majorBranch)
-    {
-        throw new Error("Unable to construct GitBranch.");
-    }
     await publishRepo.checkout(majorBranch, true);
 
     const minorBranch = await GitBranch.create(publishRepo, src.version.getMinorVersionString());
-    if (!minorBranch)
-    {
-        throw new Error("Unable to construct GitBranch.");
-    }
     await publishRepo.checkout(minorBranch, true);
 
     //

@@ -84,17 +84,30 @@ describe("GitBranch", () => {
 
         describe("create()", () => {
 
-            it("will resolve to undefined when given an illegal branch name", async () => {
+            it("will reject when given an illegal branch name", async () => {
                 const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
-                const branch = await GitBranch.create(repo, "illegal:branch_name");
-                expect(branch).toEqual(undefined);
+                try
+                {
+                    await GitBranch.create(repo, "illegal:branch_name");
+                    fail("Should never get here.");
+                }
+                catch (err)
+                {
+                }
             });
 
 
             it("will resolve to a GitBranch instance when given a valid branch name", async () => {
                 const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
-                const branch = await GitBranch.create(repo, "feature/feature_name");
-                expect(branch).toBeTruthy();
+                try
+                {
+                    const branch = await GitBranch.create(repo, "feature/feature_name");
+                    expect(branch).toBeTruthy();
+                }
+                catch (err)
+                {
+                    fail("Should never get here.");
+                }
             });
 
 
@@ -111,13 +124,7 @@ describe("GitBranch", () => {
             it("will return the branch's name", async () => {
                 const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
                 const branch = await GitBranch.create(repo, "feature/featurename", "origin");
-                if (!branch)
-                {
-                    fail("Should have gotten a branch");
-                    return;
-                }
                 expect(branch.name).toEqual("feature/featurename");
-
             });
 
         });

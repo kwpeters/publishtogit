@@ -72,12 +72,12 @@ export class GitBranch
      * @return A Promise for the newly created GitBranch instance.  This Promise
      * will be resolved with undefined if the specified branch name is invalid.
      */
-    public static async create(repo: GitRepo, branchName: string, remoteName?: string): Promise<GitBranch | undefined>
+    public static async create(repo: GitRepo, branchName: string, remoteName?: string): Promise<GitBranch>
     {
         const validator = new Validator<string>([this.isValidBranchName]);
         if (! await validator.isValid(branchName))
         {
-            return undefined;
+            throw new Error(`Cannot create GitBranch instance from invalid branch name ${branchName}.`);
         }
 
         return new GitBranch(repo, branchName, remoteName);

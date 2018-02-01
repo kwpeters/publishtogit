@@ -8,6 +8,7 @@ import {GitRepoPath, gitUrlToProjectName} from "./GitRepoPath";
 import {SemVer} from "./SemVer";
 import {GitBranch} from "./gitBranch";
 import * as _ from "lodash";
+import {Url} from "./url";
 
 
 async function getSrc():
@@ -67,12 +68,13 @@ Promise<{
 
 async function main(): Promise<void>
 {
-    const src = await getSrc();
-
     //
     // Make sure the global tmpDir exists.
     //
     globalConfig.tmpDir.ensureExistsSync();
+
+    const src = await getSrc();
+    console.log(`Project will publish to Git repository: ${src.publishToGitConfig.publishRepository}.`);
 
     //
     // Figure out what the publish repo directory and nuke it if it already
@@ -81,6 +83,7 @@ async function main(): Promise<void>
     const publishProjName = gitUrlToProjectName(src.publishToGitConfig.publishRepository);
     const publishDir = new Directory(globalConfig.tmpDir, publishProjName);
     publishDir.deleteSync();
+    console.log(`Temp publish directory: ${publishDir.toString()}`);
 
     //
     // Clone the publish repo.
@@ -89,6 +92,7 @@ async function main(): Promise<void>
     if (!publishRepoPath) {
         throw new Error(`Invalid publish repo URL "${src.publishToGitConfig.publishRepository}".`);
     }
+    console.log(`Cloning publish repo...`);
     const publishRepo = await GitRepo.clone(publishRepoPath, globalConfig.tmpDir);
 
     //
@@ -100,6 +104,7 @@ async function main(): Promise<void>
     {
         const msg = `The publish repo already has tag ${src.version.getPatchVersionString()}. ` +
             "Have you forgotten to bump the version number?";
+        console.log(msg);
         throw new Error(msg);
     }
 
@@ -108,23 +113,30 @@ async function main(): Promise<void>
     // the branch named after the major version and then the major.minor
     // version.
     //
-    // TODO: Need to push created branch upstream.
-    const majorBranch = await GitBranch.create(publishRepo, src.version.getMajorVersionString());
+    const majorBranchName = src.version.getMajorVersionString();
+    console.log(`Checking out branch: ${majorBranchName}`);
+    const majorBranch = await GitBranch.create(publishRepo, majorBranchName);
     await publishRepo.checkout(majorBranch, true);
+    await publishRepo.pushCurrentBranch("origin", true);
 
-    const minorBranch = await GitBranch.create(publishRepo, src.version.getMinorVersionString());
+    const minorBranchName = src.version.getMinorVersionString();
+    console.log(`Checking out branch: ${minorBranchName}`);
+    const minorBranch = await GitBranch.create(publishRepo, minorBranchName);
     await publishRepo.checkout(minorBranch, true);
+    await publishRepo.pushCurrentBranch("origin", true);
 
     //
     // Remove all files under version control and prune directories that are
     // empty.
     //
+    console.log("Deleting all files...");
     await deleteTrackedFiles(publishRepo);
     await publishDir.prune();
 
     //
     // Publish the source repo to the publish directory.
     //
+    console.log("Publishing package contents to publish repository...");
     await src.pkg.publish(publishDir, false);
 
     //
@@ -132,36 +144,46 @@ async function main(): Promise<void>
     // - is named after the publish repo
     // - the repository url points to the publish repo instead of the source repo
     //
+    console.log("Updating publish package.json...");
     const publishPackageJsonFile = new File(publishDir, "package.json");
     const publishPackageJson = publishPackageJsonFile.readJsonSync<IPackageJson>();
     publishPackageJson.repository.url = src.publishToGitConfig.publishRepository;
-    publishPackageJson.name = gitUrlToProjectName(src.publishToGitConfig.publishRepository);
+    publishPackageJson.name = publishProjName;
     publishPackageJsonFile.writeJsonSync(publishPackageJson);
 
     //
     // Stage and commit the published files.
     //
+    console.log("Commiting published files...");
     await publishRepo.stageAll();
     const commitMsg = `publish-to-git publishing version ${src.version.getPatchVersionString()}.`;
     await publishRepo.commit(commitMsg);
 
+    // Apply a tag with the version number.
+    const tagName = src.version.getPatchVersionString();
+    console.log(`Applying tag: ${tagName}`);
+    await publishRepo.createTag(tagName);
 
+    // Push the branch and the tag.
+    console.log("Pushing to origin...");
+    await publishRepo.pushCurrentBranch("origin");
+    await publishRepo.pushTag(tagName, "origin");
 
-    // Drop a tag with the version number.
-    // publishRepo.createTag(src.version.getPatchVersionString());
+    //
+    // Print a completion message.
+    // Tell the user how to include the published repository into another
+    // project's dependencies.
+    //
+    const dependencyUrl = Url.setProtocol(src.publishToGitConfig.publishRepository, "git+https");
+    const npmInstallCmd = `npm install ${dependencyUrl}#${tagName}`;
+    const doneMessage = [
+        "Done.",
+        "To include the published library in a Node.js project, execute the following command:",
+        npmInstallCmd
+    ];
+    console.log(doneMessage.join("\n"));
 
-    // Push the branch and the tag (publishRepo.pushTag())
-
-    // Print a message about how to include the project in another
-    // project
     // "enipjs-core": "git+https://mft.ra-int.com/gitlab/app-platform/enipjs-core.git#59f09b7"
-    // or how to install globally.
-
-
-    // await publishRepo.stageAll();
-
-
-
 }
 
 

@@ -266,13 +266,8 @@ export class GitRepo
     }
 
 
-    public createTag(tagName: string, message?: string): Promise<GitRepo>
+    public createTag(tagName: string, message: string = ""): Promise<GitRepo>
     {
-        if (message === undefined)
-        {
-            message = "";
-        }
-
         return spawn("git", ["tag", "-a", tagName, "-m", message], this._dir.toString())
         .then(() => {
             return this;
@@ -355,11 +350,24 @@ export class GitRepo
     }
 
 
-    public async checkout(branch: GitBranch, shouldCreate: boolean): Promise<void>
+    public async checkout(branch: GitBranch, createIfNonexistent: boolean): Promise<void>
     {
-        const args = shouldCreate ?
-            ["checkout", "-b", branch.name] :
-            ["checkout", branch.name];
+        if (createIfNonexistent)
+        {
+            // If there is a branch with the same name, we should not try to
+            // create it.  Instead, we should just check it out.
+            const allBranches = await this.getBranches();
+            if (_.some(allBranches, {name: branch.name}))
+            {
+                createIfNonexistent = false;
+            }
+        }
+
+        const args = [
+            "checkout",
+            ...(createIfNonexistent ? ["-b"] : []),
+            branch.name
+        ];
 
         await spawn("git", args, this._dir.toString());
     }
@@ -370,6 +378,27 @@ export class GitRepo
         return spawn("git", ["add", "."], this._dir.toString())
         .then(() => {
             return this;
+        });
+    }
+
+
+    public async pushCurrentBranch(remoteName: string = "origin", setUpstream: boolean = false): Promise<void>
+    {
+        const curBranch = await this.getCurrentBranch();
+
+        const args = [
+            "push",
+            ...(setUpstream ? ["-u"] : []),
+            remoteName,
+            curBranch.name
+        ];
+
+        return spawn("git", args, this._dir.toString())
+        .then(() => {
+        })
+        .catch((err) => {
+            console.log(`Error pushing current branch: ${JSON.stringify(err)}`);
+            throw err;
         });
     }
 

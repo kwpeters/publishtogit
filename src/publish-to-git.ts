@@ -142,10 +142,16 @@ async function main(): Promise<void>
     const publishPackageJsonFile = new File(publishDir, "package.json");
     const publishPackageJson = publishPackageJsonFile.readJsonSync<IPackageJson>();
     publishPackageJson.repository.url = src.publishToGitConfig.publishRepository;
-    publishPackageJson.name = gitUrlToProjectName(src.publishToGitConfig.publishRepository)
+    publishPackageJson.name = gitUrlToProjectName(src.publishToGitConfig.publishRepository);
     publishPackageJsonFile.writeJsonSync(publishPackageJson);
 
-    // Commit
+    //
+    // Stage and commit the published files.
+    //
+    await publishRepo.stageAll();
+
+
+
     // Drop a tag with the version number (publishRepo.createTag())
     // Push the branch and the tag (publishRepo.pushTag())
 

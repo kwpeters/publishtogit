@@ -51,19 +51,18 @@ describe("GitRepo", () => {
                 const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
                 expect(repo).toBeTruthy();
 
-                expect(new Directory(tmpDir, "sampleGitRepo").existsSync()).toBeTruthy();
-                expect(new File(tmpDir, "sampleGitRepo", "README.md").existsSync()).toBeTruthy();
+                expect(new Directory(tmpDir, "sampleGitRepo-src").existsSync()).toBeTruthy();
+                expect(new File(tmpDir, "sampleGitRepo-src", "README.md").existsSync()).toBeTruthy();
             });
 
 
             it("will clone a repository from a local directory", async () => {
                 const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
-                expect(gitRepoPath).toBeTruthy();
-                const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
+                const repo = await GitRepo.clone(gitRepoPath, tmpDir);
 
                 expect(repo).toBeTruthy();
-                expect(new Directory(tmpDir, "sampleGitRepo").existsSync()).toBeTruthy();
-                expect(new File(tmpDir, "sampleGitRepo", "README.md").existsSync()).toBeTruthy();
+                expect(new Directory(tmpDir, "sampleGitRepo-src").existsSync()).toBeTruthy();
+                expect(new File(tmpDir, "sampleGitRepo-src", "README.md").existsSync()).toBeTruthy();
             });
 
 
@@ -76,11 +75,12 @@ describe("GitRepo", () => {
     describe("instance", () => {
 
 
-        describe("files()", () => {
+        beforeEach(() => {
+            tmpDir.emptySync();
+        });
 
-            beforeEach(() => {
-                tmpDir.emptySync();
-            });
+
+        describe("files()", () => {
 
 
             it("will return the files under version control", (done) => {
@@ -167,7 +167,6 @@ describe("GitRepo", () => {
                 tmpDir.emptySync();
 
                 const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
-                expect(gitRepoPath).toBeTruthy();
 
                 const dir1 = new Directory(tmpDir, "dir1");
                 dir1.ensureExistsSync();
@@ -175,8 +174,8 @@ describe("GitRepo", () => {
                 const dir2 = new Directory(tmpDir, "dir2");
                 dir2.ensureExistsSync();
 
-                const repo1 = await GitRepo.clone(gitRepoPath!, dir1);
-                const repo2 = await GitRepo.clone(gitRepoPath!, dir2);
+                const repo1 = await GitRepo.clone(gitRepoPath, dir1);
+                const repo2 = await GitRepo.clone(gitRepoPath, dir2);
                 expect(repo1.equals(repo2)).toBeFalsy();
             });
         });
@@ -344,6 +343,36 @@ describe("GitRepo", () => {
 
         });
 
+
+        describe("getLog()", () => {
+
+
+            it("returns the expected entries", async () => {
+                const path = await GitRepoPath.fromDirectory(sampleRepoDir);
+                const repo = await GitRepo.clone(path, tmpDir);
+
+                const log = await repo.getLog();
+                expect(log.length).toBeGreaterThan(0);
+
+                expect(log[0].commitHash).toEqual("a5206775d3e67a4282a07f15f18eb44bca8d52c8");
+                expect(log[0].author).toContain("kwpeters");
+                expect(log[0].timestamp instanceof Date).toBeTruthy();
+                expect(log[0].message).toBe("Initial commit");
+
+                expect(log[1].commitHash).toEqual("bf60e95d83e63a807dfc072a90ba70d7c7597135");
+                expect(log[1].author).toContain("kwpeters");
+                expect(log[1].timestamp instanceof Date).toBeTruthy();
+                expect(log[1].message).toBe("Created README.md.");
+
+                expect(log[5].commitHash).toEqual("74a66ef9f2751b843b166d33a2f48c81d420fde2");
+                expect(log[5].author).toContain("kwpeters");
+                expect(log[5].timestamp instanceof Date).toBeTruthy();
+                expect(log[5].message).toBe("A dummy checking done solely for\nthe purpose of making\na multi-line commit message.");
+            });
+
+
+
+        });
 
     });
 

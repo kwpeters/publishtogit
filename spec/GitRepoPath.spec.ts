@@ -30,15 +30,32 @@ describe("GitRepoPath", () => {
         describe("fromDirectory()", () => {
             
             
-            it("will return undefined when given a nonexistent directory", async () => {
+            it("will reject when given a nonexistent directory", async () => {
                 const dir = new Directory(tmpDir, "xyzzy");
-                expect(await GitRepoPath.fromDirectory(dir)).toEqual(undefined);
+
+                try
+                {
+                    await GitRepoPath.fromDirectory(dir);
+                    fail("Should never get here.");
+                }
+                catch (err)
+                {
+                }
+
             });
 
 
             it("will return undefined when the directory exists but does not have a .git folder in it", async () => {
                 const dir = new Directory(tmpDir);
-                expect(await GitRepoPath.fromDirectory(dir)).toEqual(undefined);
+
+                try
+                {
+                    await GitRepoPath.fromDirectory(dir);
+                    fail("Should never get here.");
+                }
+                catch (err)
+                {
+                }
             });
 
 
@@ -81,8 +98,7 @@ describe("GitRepoPath", () => {
             it("will return the expected string when constructed with a directory", async () => {
                 const dir = new Directory(__dirname, "..");
                 const gitRepoPath = await GitRepoPath.fromDirectory(dir);
-                expect(gitRepoPath).toBeTruthy();
-                expect(gitRepoPath!.toString()).toEqual(dir.toString());
+                expect(gitRepoPath.toString()).toEqual(dir.toString());
             });
 
 
@@ -103,7 +119,7 @@ describe("GitRepoPath", () => {
             it("will return the expected project name when created from a directory", async () => {
                 const dir = new Directory(__dirname, "..");
                 const gitRepoPath = await GitRepoPath.fromDirectory(dir);
-                expect(gitRepoPath!.getProjectName()).toEqual("publish-to-git-src");
+                expect(gitRepoPath.getProjectName()).toEqual("publish-to-git-src");
             });
 
 

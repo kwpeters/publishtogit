@@ -145,7 +145,7 @@ export class NodePackage
             return extractedTarFile.exists();
         })
         .then(() => {
-            // We are about to uncompress/unpack the tar file.  Create an empty
+            // We are about to unpack the tar file.  Create an empty
             // directory where its contents will be placed.
             unpackedDir = new Directory(config.tmpDir, packageBaseName);
             return unpackedDir.empty();  // Creates (if needed) and empties this directory.

@@ -5,7 +5,26 @@ import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
 import {GitRepoPath} from "./GitRepoPath";
 import * as _ from "lodash";
+import {outdent, trimBlankLines} from "./stringHelpers";
 
+
+interface IGitLogEntry
+{
+    commitHash: string;
+    author: string;
+    timestamp: Date;
+    message: string;
+}
+
+
+//
+// A regex for parsing "git log" output.
+// match[1]: commit hash
+// match[2]: author
+// match[3]: commit timestamp
+// match[4]: commit message (a sequence of lines that are either blank or start with whitespace)
+//
+const GIT_LOG_ENTRY_REGEX = /commit\s*([0-9a-f]+).*?$\s^Author:\s*(.*?)$\s^Date:\s*(.*?)$\s((?:(?:^\s*$\n?)|(?:^\s+(?:.*)$\s?))+)/gm;
 
 /**
  * Determines whether dir is a directory containing a Git repository.
@@ -29,6 +48,7 @@ export class GitRepo
     //region Private Data Members
     private _dir: Directory;
     private _branches: Array<GitBranch> | undefined;
+    private _log: Array<IGitLogEntry> | undefined;
     //endregion
 
 
@@ -290,14 +310,17 @@ export class GitRepo
 
     public getBranches(forceUpdate: boolean = false): Promise<Array<GitBranch>>
     {
-        let updatePromise: Promise<void>;
-
-        if (this._branches === undefined || forceUpdate)
+        if (forceUpdate)
         {
             // Invalidate the cache.  If this update fails, subsequent requests
             // will have to update the cache.
             this._branches = undefined;
+        }
 
+        let updatePromise: Promise<void>;
+
+        if (this._branches === undefined)
+        {
             // The internal cache of branches needs to be updated.
             updatePromise = GitBranch.enumerateGitRepoBranches(this)
             .then((branches: Array<GitBranch>) => {
@@ -356,4 +379,94 @@ export class GitRepo
 
     // TODO: To get the staged files:
     // git diff --name-only --cached
+
+
+    // TODO: Add unit tests for this method.
+    public commit(msg = ""): Promise<IGitLogEntry>
+    {
+        return spawn("git", ["commit", "-m", msg], this._dir.toString())
+        .then(() => {
+            // Get the commit hash
+            return spawn("git", ["rev-parse", "HEAD"], this._dir.toString());
+        })
+        .then((stdout) => {
+            const commitHash = _.trim(stdout);
+            return spawn("git", ["show", commitHash]);
+        })
+        .then((stdout) => {
+            const match = GIT_LOG_ENTRY_REGEX.exec(stdout);
+            if (!match)
+            {
+                throw new Error(`Could not parse "git show" output:\n${stdout}`);
+            }
+            return {
+                commitHash: match[1],
+                author:     match[2],
+                timestamp:  new Date(match[3]),
+                message:    outdent(trimBlankLines(match[4]))
+            };
+        });
+    }
+
+
+    public getLog(forceUpdate?: boolean): Promise<Array<IGitLogEntry>>
+    {
+        if (forceUpdate)
+        {
+            this._log = undefined;
+        }
+
+        let updatePromise: Promise<void>;
+
+        if (this._log === undefined)
+        {
+            updatePromise = this.getLogEntries()
+            .then((log: Array<IGitLogEntry>) => {
+                this._log = log;
+            });
+        }
+        else
+        {
+            updatePromise = Promise.resolve();
+        }
+
+        return updatePromise
+        .then(() => {
+            return this._log!;
+        });
+    }
+
+
+    /**
+     * Helper method that retrieves Git log entries
+     * @private
+     * @method
+     * @return A promise for an array of structures describing each commit.
+     */
+    private getLogEntries(): Promise<Array<IGitLogEntry>>
+    {
+        return spawn("git", ["log"], this._dir.toString())
+        .then((stdout) => {
+            const entries: Array<IGitLogEntry> = [];
+            let match: RegExpExecArray | null;
+            while ((match = GIT_LOG_ENTRY_REGEX.exec(stdout)) !== null) // tslint:disable-line
+            {
+                entries.push(
+                    {
+                        commitHash: match[1],
+                        author:     match[2],
+                        timestamp:  new Date(match[3]),
+                        message:    outdent(trimBlankLines(match[4]))
+                    }
+                );
+            }
+
+            // Git log lists the most recent entry first.  Reverse the array so
+            // that the most recent entry is the last.
+            _.reverse(entries);
+            return entries;
+        });
+    }
+
+
 }

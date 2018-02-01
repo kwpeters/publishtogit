@@ -36,13 +36,18 @@ export class GitRepoPath
      * @return A Promise for the GitRepoPath or undefined if repoDir does not
      * exist or does not contain a Git repository.
      */
-    public static async fromDirectory(repoDir: Directory): Promise<GitRepoPath | undefined>
+    public static fromDirectory(repoDir: Directory): Promise<GitRepoPath>
     {
-        const isGitRepo = await isGitRepoDir(repoDir);
-        if (isGitRepo)
-        {
-            return new GitRepoPath(repoDir);
-        }
+        return isGitRepoDir(repoDir)
+        .then((isGitRepoDir: boolean) => {
+            if (isGitRepoDir)
+            {
+                return new GitRepoPath(repoDir);
+            }
+
+            throw new Error("Directory does not contain a Git repository.");
+
+        });
     }
 
 

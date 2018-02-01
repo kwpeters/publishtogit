@@ -141,15 +141,16 @@ export class GitRepo
 
     /**
      * Gets the files that are under Git version control.
-     * @return A Promise for an array of files under Git version control.  Each
-     * string is the file's *relative* path within the repo.
+     * @return A Promise for an array of files under Git version control.
      */
-    // TODO: Make the following return an array of File objects.
-    public files(): Promise<Array<string>>
+    public files(): Promise<Array<File>>
     {
         return spawn("git", ["ls-files"], this._dir.toString())
         .then((stdout) => {
-            return stdout.split("\n");
+            const relativeFilePaths = stdout.split("\n");
+            return _.map(relativeFilePaths, (curRelFilePath) => {
+                return new File(this._dir, curRelFilePath);
+            });
         });
     }
 
@@ -382,7 +383,7 @@ export class GitRepo
 
 
     // TODO: Add unit tests for this method.
-    public commit(msg = ""): Promise<IGitLogEntry>
+    public commit(msg: string = ""): Promise<IGitLogEntry>
     {
         return spawn("git", ["commit", "-m", msg], this._dir.toString())
         .then(() => {
@@ -391,7 +392,7 @@ export class GitRepo
         })
         .then((stdout) => {
             const commitHash = _.trim(stdout);
-            return spawn("git", ["show", commitHash]);
+            return spawn("git", ["show", commitHash], this._dir.toString());
         })
         .then((stdout) => {
             const match = GIT_LOG_ENTRY_REGEX.exec(stdout);

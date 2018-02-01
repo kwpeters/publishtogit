@@ -42,8 +42,6 @@ describe("GitRepo", () => {
             });
 
 
-            // MUST: Stop cloning from the Internet elsewhere.
-
             it("will clone a repository on the Internet", async () => {
                 const gitRepoPath = GitRepoPath.fromUrl(sampleRepoUrl);
                 expect(gitRepoPath).toBeTruthy();
@@ -83,20 +81,15 @@ describe("GitRepo", () => {
         describe("files()", () => {
 
 
-            it("will return the files under version control", (done) => {
-                const gitRepoPath = GitRepoPath.fromUrl("https://github.com/kwpeters/publish-to-git-src.git");
-                expect(gitRepoPath).toBeTruthy();
+            it("will return the files under version control", async () => {
+                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
 
-                GitRepo.clone(gitRepoPath!, tmpDir)
-                .then((repo) => {
-                    return repo.files();
-                })
-                .then((files) => {
-                    expect(files).toContain("package.json");
-                    expect(files).toContain("README.md");
-                    expect(files).toContain("gulpfile.js");
-                    done();
-                });
+                const repo = await GitRepo.clone(gitRepoPath, tmpDir);
+                const files = await repo.files();
+
+                expect(_.findIndex(files, {fileName: "package.json"})).toBeGreaterThanOrEqual(0);
+                expect(_.findIndex(files, {fileName: "README.md"})).toBeGreaterThanOrEqual(0);
+                expect(_.findIndex(files, {fileName: "LICENSE"})).toBeGreaterThanOrEqual(0);
             });
 
         });

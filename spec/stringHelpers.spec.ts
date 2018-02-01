@@ -8,7 +8,7 @@ describe("numInitial()", () => {
     });
 
 
-    it("returns the number of pad repitions", function () {
+    it("returns the number of pad repitions", () => {
         expect(numInitial("xxxxABC", "x")).toEqual(4);
     });
 

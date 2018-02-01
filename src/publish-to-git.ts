@@ -1,4 +1,3 @@
-import * as path from "path";
 import {Directory} from "./directory";
 import {File} from "./file";
 import {GitRepo} from "./gitRepo";
@@ -8,6 +7,7 @@ import {IPackageJson, NodePackage} from "./nodePackage";
 import {GitRepoPath, gitUrlToProjectName} from "./GitRepoPath";
 import {SemVer} from "./SemVer";
 import {GitBranch} from "./gitBranch";
+import * as _ from "lodash";
 
 
 async function getSrc():
@@ -149,10 +149,14 @@ async function main(): Promise<void>
     // Stage and commit the published files.
     //
     await publishRepo.stageAll();
+    const commitMsg = `publish-to-git publishing version ${src.version.getPatchVersionString()}.`;
+    await publishRepo.commit(commitMsg);
 
 
 
-    // Drop a tag with the version number (publishRepo.createTag())
+    // Drop a tag with the version number.
+    // publishRepo.createTag(src.version.getPatchVersionString());
+
     // Push the branch and the tag (publishRepo.pushTag())
 
     // Print a message about how to include the project in another
@@ -173,26 +177,14 @@ async function main(): Promise<void>
  * @param repo - The repo to clear
  * @return A Promise that is resolved when all files have been deleted.
  */
-function deleteTrackedFiles(repo: GitRepo): Promise<void>
+async function deleteTrackedFiles(repo: GitRepo): Promise<void>
 {
-    const repoAbsPath = repo.directory.absPath();
-
-    return repo.files()
-    .then((relFilePaths) => {
-        const deletePromises = relFilePaths.map((curRelPath) => {
-            // Make the relative file paths absolute.
-            return path.join(repoAbsPath, curRelPath);
-        })
-        .map((curAbsPath) => {
-            // Delete
-            const curFile = new File(curAbsPath);
-            return curFile.delete();
-        });
-
-        return Promise.all(deletePromises);
-    })
-    .then(() => {
+    const files = await repo.files();
+    const deletePromises = _.map(files, (curFile) => {
+        return curFile.delete();
     });
+
+    await Promise.all(deletePromises);
 }
 
 

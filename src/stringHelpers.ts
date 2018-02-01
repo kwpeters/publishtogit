@@ -21,7 +21,7 @@ export function numInitial(str: string, padStr: string): number
 }
 
 
-export function outdent(str: string, padStr = " "): string
+export function outdent(str: string, padStr: string = " "): string
 {
     const lines = str.split("\n");
     const initOccurrences = _.map(lines, (curLine) => numInitial(curLine, padStr));
@@ -38,13 +38,13 @@ export function trimBlankLines(str: string): string
     const BLANK_LINE_REGEX = /^\s*$/;
     const lines = str.split("\n");
 
-    while((lines.length > 0) &&
+    while ((lines.length > 0) &&
           BLANK_LINE_REGEX.test(lines[0]))
     {
         lines.shift();
     }
 
-    while((lines.length > 0) &&
+    while ((lines.length > 0) &&
           BLANK_LINE_REGEX.test(_.last(lines)!))
     {
         lines.pop();

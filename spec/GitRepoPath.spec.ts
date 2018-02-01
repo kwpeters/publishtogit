@@ -5,6 +5,7 @@ import {gitUrlToProjectName, GitRepoPath} from "../src/GitRepoPath";
 
 describe("GitUrlToProjectName", () => {
 
+
     it("will return undefined when given an illegal Git URL", () => {
         expect(() => {
             // Missing .git at the end of the URL.

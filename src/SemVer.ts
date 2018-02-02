@@ -12,6 +12,12 @@ import * as _ from "lodash";
 const SEMVER_REGEXP = /^(?:\w*?\s*?)?(\d+)\.(\d+)\.(\d+)$/;
 
 
+//
+// The string that is prefixed onto version strings.
+//
+const VERSION_STRING_PREFIX = "v";
+
+
 export class SemVer
 {
     public static sort(arr: Array<SemVer>): Array<SemVer>
@@ -57,52 +63,83 @@ export class SemVer
     }
 
 
+    /**
+     * Returns this version as a string (no prefixes)
+     * @return A string representation of this version
+     */
     public toString(): string
     {
-        // TODO: This should not include the version prefix.
-        return this.getPatchVersionString();
+        return `${this._major}.${this._minor}.${this._patch}`;
     }
 
 
+    /**
+     * Gets the major version number
+     */
     public get major(): number
     {
         return this._major;
     }
 
 
+    /**
+     * Gets the minor version number
+     */
     public get minor(): number
     {
         return this._minor;
     }
 
 
+    /**
+     * Gets the patch version number
+     */
     public get patch(): number
     {
         return this._patch;
     }
 
 
+    /**
+     * Gets this version as a version string (prefixed), including only the
+     * major version number.
+     * @return The major version string (prefixed)
+     */
     public getMajorVersionString(): string
     {
-        // TODO: This should include the version prefix.
-        return `${this._major}`;
+        return `${VERSION_STRING_PREFIX}${this._major}`;
     }
 
 
+    /**
+     * Gets this version as a version string (prefixed), including major and
+     * minor version numbers.
+     * @return The minor version string (prefixed)
+     */
     public getMinorVersionString(): string
     {
-        // TODO: This should include the version prefix.
-        return `${this._major}.${this._minor}`;
+        return `${VERSION_STRING_PREFIX}${this._major}.${this._minor}`;
     }
 
 
+    /**
+     * Gets this version as a version string (prefixed), including major, minor
+     * and patch version numbers.
+     * @return The patch version string (prefixed)
+     */
     public getPatchVersionString(): string
     {
-        // TODO: This should include the version prefix.
-        return `${this._major}.${this._minor}.${this._patch}`;
+        return `${VERSION_STRING_PREFIX}${this._major}.${this._minor}.${this._patch}`;
     }
 
 
+    /**
+     * Compares this version with other and determines whether the this version
+     * is less, greater or equal to other.
+     * @param other - The other version to compare to
+     * @return {-1 | 0 | 1} -1 if this version is less than other. 1 if this
+     * version is greater than other.  0 if this version equals other.
+     */
     public compare(other: SemVer): -1 | 0 | 1
     {
         if (this._major < other._major)

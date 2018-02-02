@@ -138,25 +138,25 @@ describe("SemVer", () => {
 
         it("toString()", () => {
             const semver = SemVer.fromString("1.2.3");
-            expect(semver!.getPatchVersionString()).toEqual("1.2.3");
+            expect(semver!.toString()).toEqual("1.2.3");
         });
 
 
         it("getMajorVersionString()", () => {
             const semver = SemVer.fromString("1.2.3");
-            expect(semver!.getMajorVersionString()).toEqual("1");
+            expect(semver!.getMajorVersionString()).toEqual("v1");
         });
 
 
         it("getMinorVersionString()", () => {
             const semver = SemVer.fromString("1.2.3");
-            expect(semver!.getMinorVersionString()).toEqual("1.2");
+            expect(semver!.getMinorVersionString()).toEqual("v1.2");
         });
 
 
         it("getPatchVersionString()", () => {
             const semver = SemVer.fromString("1.2.3");
-            expect(semver!.getPatchVersionString()).toEqual("1.2.3");
+            expect(semver!.getPatchVersionString()).toEqual("v1.2.3");
         });
 
 

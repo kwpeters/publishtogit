@@ -1,47 +1,47 @@
 {
-  "name": "publish-to-git",
-  "version": "1.0.2",
-  "description": "A command line tool for publishing a npm package to a Git repository",
-  "bin": {
-    "publish-to-git": "./dist/publish-to-git.js"
-  },
-  "scripts": {
-    "publish-to-git": "gulp build && ts-node ./src/publish-to-git.ts ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kwpeters/publish-to-git.git"
-  },
-  "keywords": [
-    "npm",
-    "publish",
-    "git",
-    "package"
-  ],
-  "author": "Kevin Peters <kwpeters@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kwpeters/publish-to-git/issues"
-  },
-  "homepage": "https://github.com/kwpeters/publish-to-git#readme",
-  "devDependencies": {
-    "@types/jasmine": "^2.8.2",
-    "@types/lodash": "^4.14.91",
-    "@types/node": "^8.0.57",
-    "@types/strip-json-comments": "0.0.30",
-    "@types/yargs": "^10.0.1",
-    "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-sourcemaps": "^2.6.3",
-    "gulp-typescript": "^3.2.3",
-    "jasmine": "^2.8.0",
-    "ts-node": "^4.1.0",
-    "tslint": "^5.8.0",
-    "typescript": "2.4.2"
-  },
-  "dependencies": {
-    "lodash": "^4.17.4",
-    "strip-json-comments": "^2.0.1",
-    "yargs": "^11.0.0"
-  }
+    "name": "publish-to-git",
+    "version": "1.0.2",
+    "description": "A command line tool for publishing a npm package to a Git repository",
+    "bin": {
+        "publish-to-git": "./dist/publish-to-git.js"
+    },
+    "scripts": {
+        "publish-to-git": "gulp build && ts-node ./src/publish-to-git.ts ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kwpeters/publish-to-git.git"
+    },
+    "keywords": [
+        "npm",
+        "publish",
+        "git",
+        "package"
+    ],
+    "author": "Kevin Peters <kwpeters@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kwpeters/publish-to-git/issues"
+    },
+    "homepage": "https://github.com/kwpeters/publish-to-git#readme",
+    "devDependencies": {
+        "@types/jasmine": "^2.8.2",
+        "@types/lodash": "^4.14.91",
+        "@types/node": "^8.0.57",
+        "@types/strip-json-comments": "0.0.30",
+        "@types/yargs": "^10.0.1",
+        "del": "^3.0.0",
+        "gulp": "^3.9.1",
+        "gulp-sourcemaps": "^2.6.3",
+        "gulp-typescript": "^3.2.3",
+        "jasmine": "^2.8.0",
+        "ts-node": "^4.1.0",
+        "tslint": "^5.8.0",
+        "typescript": "2.4.2"
+    },
+    "dependencies": {
+        "lodash": "^4.17.4",
+        "strip-json-comments": "^2.0.1",
+        "yargs": "^11.0.0"
+    }
 }

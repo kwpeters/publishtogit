@@ -23,6 +23,21 @@ describe("SemVer", () => {
             });
 
 
+            it("will return the expected SemVer instance when the provided string has a prefix", () => {
+
+                // No whitespace after prefix.
+                expect(SemVer.fromString("v1.2.3")!.toString()).toEqual("1.2.3");
+                expect(SemVer.fromString("ver1.2.3")!.toString()).toEqual("1.2.3");
+                expect(SemVer.fromString("version1.2.3")!.toString()).toEqual("1.2.3");
+
+                // Whitespace present after prefix.
+                expect(SemVer.fromString("v 1.2.3")!.toString()).toEqual("1.2.3");
+                expect(SemVer.fromString("ver 1.2.3")!.toString()).toEqual("1.2.3");
+                expect(SemVer.fromString("version 1.2.3")!.toString()).toEqual("1.2.3");
+
+            });
+
+
         });
 
 

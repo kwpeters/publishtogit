@@ -1,6 +1,15 @@
 import * as _ from "lodash";
 
-const SEMVER_REGEXP = /^(\d+)\.(\d+)\.(\d+)$/;
+//
+// A regex that will parse the parts of a version string.
+//
+// optional non-capturing group - Matches an optional word followed by optional
+//     whitespace.
+// match[1] - The major version number
+// match[2] - The minor version number
+// match[3] - The patch version number
+//
+const SEMVER_REGEXP = /^(?:\w*?\s*?)?(\d+)\.(\d+)\.(\d+)$/;
 
 
 export class SemVer
@@ -50,6 +59,7 @@ export class SemVer
 
     public toString(): string
     {
+        // TODO: This should not include the version prefix.
         return this.getPatchVersionString();
     }
 
@@ -74,18 +84,21 @@ export class SemVer
 
     public getMajorVersionString(): string
     {
+        // TODO: This should include the version prefix.
         return `${this._major}`;
     }
 
 
     public getMinorVersionString(): string
     {
+        // TODO: This should include the version prefix.
         return `${this._major}.${this._minor}`;
     }
 
 
     public getPatchVersionString(): string
     {
+        // TODO: This should include the version prefix.
         return `${this._major}.${this._minor}.${this._patch}`;
     }
 

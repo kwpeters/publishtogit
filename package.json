@@ -5,7 +5,9 @@
   "bin": {
     "publish-to-git": "./dist/publish-to-git.js"
   },
-  "scripts": {},
+  "scripts": {
+    "publish-to-git": "gulp build && ts-node ./src/publish-to-git.ts ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kwpeters/publish-to-git.git"

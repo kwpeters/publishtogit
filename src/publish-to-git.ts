@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import {Directory} from "./directory";
 import {File} from "./file";
 import {GitRepo} from "./gitRepo";

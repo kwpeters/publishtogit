@@ -9,9 +9,53 @@ import {SemVer} from "./SemVer";
 import {GitBranch} from "./gitBranch";
 import * as _ from "lodash";
 import {Url} from "./url";
+import * as yargs from "yargs";
 
 
-async function getSrc():
+interface ICmdLineOpts
+{
+    dryRun: boolean;
+    srcDir: Directory;
+}
+
+
+function parseArgs(): ICmdLineOpts | undefined {
+    const argv = yargs
+    .usage("Publishes a Node package to a Git repo.\nUsage: $0 [--dry-run] source_directory")
+    .help()
+    .option(
+        "dry-run",
+        {
+            type: "boolean",
+            default: false,
+            demandOption: false,
+            describe: "Perform all operations but do not push to origin"
+        }
+    )
+    .version()  // version will be read from package.json!
+    .demandCommand(1)
+    .wrap(80)
+    .argv;
+
+    // Get the source project directory from the command line arguments.  If not
+    // present, assume the current working directory.
+    const srcDirStr = argv._[0] || ".";
+    const srcDir = new Directory(srcDirStr);
+    if (!srcDir.existsSync())
+    {
+        console.log(`The directory ${srcDirStr} does not exist.`);
+        return undefined;
+    }
+
+    const cmdLineOpts = {
+        dryRun: argv["dry-run"],
+        srcDir: srcDir
+    };
+    return cmdLineOpts;
+}
+
+
+async function getSrc(cmdLineOpts: ICmdLineOpts):
 Promise<{
     dir: Directory,
     repo: GitRepo,
@@ -20,27 +64,17 @@ Promise<{
     publishToGitConfig: IPublishToGitConfig
 }>
 {
-    // Get the source project directory from the command line arguments.  If not
-    // present, assume the current working directory.
-    const srcDirString = process.argv[2] || ".";
-
-    // Make sure the specified directory exists.
-    const srcDir = new Directory(srcDirString);
-    if (!srcDir.existsSync()) {
-        return Promise.reject(new Error(`The directory "${srcDirString}" does not exist.`));
-    }
-
-    const srcRepo = await GitRepo.fromDirectory(srcDir);
+    const srcRepo = await GitRepo.fromDirectory(cmdLineOpts.srcDir);
 
     // Make sure the specified directory is a NPM project (contains a
     // package.json).
-    const pkg = await NodePackage.fromDirectory(srcDir)
+    const pkg = await NodePackage.fromDirectory(cmdLineOpts.srcDir)
     .catch(() => {
-        return Promise.reject(new Error(`The directory ${srcDirString} is not a NPM package.`));
+        return Promise.reject(new Error(`The directory ${cmdLineOpts.srcDir.toString()} is not a NPM package.`));
     });
 
     // Make sure the specified directory has a publishtogit.json.
-    const configFile = new File(srcDir, "publishtogit.json");
+    const configFile = new File(cmdLineOpts.srcDir, "publishtogit.json");
     if (!configFile.existsSync()) {
         return Promise.reject(new Error(`Could not find file ${configFile.toString()}.`));
     }
@@ -57,10 +91,10 @@ Promise<{
     }
 
     return {
-        dir:  srcDir,
-        repo: srcRepo,
-        pkg:  pkg,
-        version: semver,
+        dir:                cmdLineOpts.srcDir,
+        repo:               srcRepo,
+        pkg:                pkg,
+        version:            semver,
         publishToGitConfig: publishToGitConfig
     };
 }
@@ -73,7 +107,13 @@ async function main(): Promise<void>
     //
     globalConfig.tmpDir.ensureExistsSync();
 
-    const src = await getSrc();
+    const cmdLineOpts = parseArgs();
+    if (!cmdLineOpts)
+    {
+        return;
+    }
+
+    const src = await getSrc(cmdLineOpts);
     console.log(`Project will publish to Git repository: ${src.publishToGitConfig.publishRepository}.`);
 
     //
@@ -163,6 +203,17 @@ async function main(): Promise<void>
     const tagName = src.version.getPatchVersionString();
     console.log(`Applying tag: ${tagName}`);
     await publishRepo.createTag(tagName);
+
+    if (cmdLineOpts.dryRun)
+    {
+        const msg = [
+            "Running in dry-run mode.  The repository in the following temporary directory",
+            "has been left ready to push to a public server.",
+            publishDir.toString()
+        ];
+        console.log(msg.join("\n"));
+        return;
+    }
 
     // Push the branch and the tag.
     console.log("Pushing to origin...");

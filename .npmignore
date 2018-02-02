@@ -1,9 +1,11 @@
+.gitignore
 /.idea/
 .npmignore
 .nvmrc
 gulpfile.js
 publishtogit.json
 /spec/
+/src/
 /tmp/
 tsconfig.json
 tslint.json

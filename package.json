@@ -2,7 +2,9 @@
   "name": "publish-to-git",
   "version": "1.0.0",
   "description": "A command line tool for publishing a npm package to a Git repository",
-  "main": "index.js",
+  "bin": {
+    "publish-to-git": "./dist/publish-to-git.js"
+  },
   "scripts": {},
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
     "@types/lodash": "^4.14.91",
     "@types/node": "^8.0.57",
     "@types/strip-json-comments": "0.0.30",
+    "@types/yargs": "^10.0.1",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^2.6.3",
@@ -36,6 +39,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "strip-json-comments": "^2.0.1"
+    "strip-json-comments": "^2.0.1",
+    "yargs": "^11.0.0"
   }
 }

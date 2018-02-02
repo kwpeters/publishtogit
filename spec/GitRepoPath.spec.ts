@@ -9,13 +9,13 @@ describe("GitUrlToProjectName", () => {
     it("will return undefined when given an illegal Git URL", () => {
         expect(() => {
             // Missing .git at the end of the URL.
-            gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src");
+            gitUrlToProjectName("https://github.com/kwpeters/publish-to-git");
         }).toThrowError(/invalid Git URL/);
     });
 
 
     it("will return the proper name when given a valid URL", () => {
-        expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git-src.git")).toEqual("publish-to-git-src");
+        expect(gitUrlToProjectName("https://github.com/kwpeters/publish-to-git.git")).toEqual("publish-to-git");
     });
 
 
@@ -73,13 +73,13 @@ describe("GitRepoPath", () => {
 
 
             it("will return undefined when given an invalid URL", () => {
-                const url = "https://github.com/kwpeters/publish-to-git-src";
+                const url = "https://github.com/kwpeters/publish-to-git";
                 expect(GitRepoPath.fromUrl(url)).toEqual(undefined);
             });
 
 
             it("will return a GitRepoPath instance when given a valid URL", () => {
-                const url = "https://github.com/kwpeters/publish-to-git-src.git";
+                const url = "https://github.com/kwpeters/publish-to-git.git";
                 expect(GitRepoPath.fromUrl(url)).toBeTruthy();
             });
 
@@ -104,7 +104,7 @@ describe("GitRepoPath", () => {
 
 
             it("will return the expected string when constructed with a URL", () => {
-                const url = "https://github.com/kwpeters/publish-to-git-src.git";
+                const url = "https://github.com/kwpeters/publish-to-git.git";
                 const gitRepoPath = GitRepoPath.fromUrl(url);
                 expect(gitRepoPath).toBeTruthy();
                 expect(gitRepoPath!.toString()).toEqual(url);
@@ -120,14 +120,14 @@ describe("GitRepoPath", () => {
             it("will return the expected project name when created from a directory", async () => {
                 const dir = new Directory(__dirname, "..");
                 const gitRepoPath = await GitRepoPath.fromDirectory(dir);
-                expect(gitRepoPath.getProjectName()).toEqual("publish-to-git-src");
+                expect(gitRepoPath.getProjectName()).toEqual("publish-to-git");
             });
 
 
             it("will return the expected project name when created from a URL", () => {
-                const url = "https://github.com/kwpeters/publish-to-git-src.git";
+                const url = "https://github.com/kwpeters/publish-to-git.git";
                 const gitRepoPath = GitRepoPath.fromUrl(url);
-                expect(gitRepoPath!.getProjectName()).toEqual("publish-to-git-src");
+                expect(gitRepoPath!.getProjectName()).toEqual("publish-to-git");
             });
 
 

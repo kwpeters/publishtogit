@@ -104,7 +104,7 @@ describe("GitRepo", () => {
                 })
                 .then((remotes) => {
                     expect(Object.keys.length).toEqual(1);
-                    expect(remotes.origin).toEqual("https://github.com/kwpeters/publish-to-git-src.git");
+                    expect(remotes.origin).toEqual("https://github.com/kwpeters/publish-to-git.git");
                     done();
                 });
             });
@@ -121,7 +121,7 @@ describe("GitRepo", () => {
                     return repo.name();
                 })
                 .then((repoName) => {
-                    expect(repoName).toEqual("publish-to-git-src");
+                    expect(repoName).toEqual("publish-to-git");
                     done();
                 });
             });

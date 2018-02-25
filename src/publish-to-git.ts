@@ -119,6 +119,12 @@ async function main(): Promise<void>
     console.log(`Project will publish to Git repository: ${src.publishToGitConfig.publishRepository}.`);
 
     //
+    // TODO: If the source repo has a CHANGELOG.md, make sure it has a section
+    // describing this release.  Maybe I could help generate it by providing all
+    // commits since last label?
+    //
+
+    //
     // Figure out what the publish repo directory and nuke it if it already
     // exists.
     //
@@ -141,7 +147,8 @@ async function main(): Promise<void>
     // Check to see if the current version has already been published so
     // that we can return an error before taking any further action.
     //
-    const hasTag = await publishRepo.hasTag(src.version.getPatchVersionString());
+    const newTagName = `v${src.pkg.config.version}`;
+    const hasTag = await publishRepo.hasTag(newTagName);
     if (hasTag)
     {
         const msg = `The publish repo already has tag ${src.version.getPatchVersionString()}. ` +
@@ -202,9 +209,9 @@ async function main(): Promise<void>
     await publishRepo.commit(commitMsg);
 
     // Apply a tag with the version number.
-    const tagName = src.version.getPatchVersionString();
-    console.log(`Applying tag: ${tagName}`);
-    await publishRepo.createTag(tagName);
+    // TODO: If the source repo has a CHANGELOG.md, add its contents at the annotated tag message.
+    console.log(`Applying tag: ${newTagName}`);
+    await publishRepo.createTag(newTagName);
 
     if (cmdLineOpts.dryRun)
     {
@@ -220,7 +227,7 @@ async function main(): Promise<void>
     // Push the branch and the tag.
     console.log("Pushing to origin...");
     await publishRepo.pushCurrentBranch("origin");
-    await publishRepo.pushTag(tagName, "origin");
+    await publishRepo.pushTag(newTagName, "origin");
 
     //
     // Print a completion message.
@@ -228,7 +235,7 @@ async function main(): Promise<void>
     // project's dependencies.
     //
     const dependencyUrl = Url.setProtocol(src.publishToGitConfig.publishRepository, "git+https");
-    const npmInstallCmd = `npm install ${dependencyUrl}#${tagName}`;
+    const npmInstallCmd = `npm install ${dependencyUrl}#${newTagName}`;
     const doneMessage = [
         "Done.",
         "To include the published library in a Node.js project, execute the following command:",

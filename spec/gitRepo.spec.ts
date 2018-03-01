@@ -263,6 +263,17 @@ describe("GitRepo", () => {
             });
 
 
+            it("will resolve when the tag already exists but force is set to true", (done) => {
+                theRepo.createTag("unittest_tag")
+                .then(() => {
+                    return theRepo.createTag("unittest_tag", "", true);
+                })
+                .then(() => {
+                    done();
+                });
+            });
+
+
         });
 
 

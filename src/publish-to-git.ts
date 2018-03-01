@@ -18,10 +18,12 @@ interface ICmdLineOpts
 {
     dryRun: boolean;
     srcDir: Directory;
+    additionalTags?: Array<string>;
 }
 
 
-function parseArgs(): ICmdLineOpts | undefined {
+function parseArgs(): ICmdLineOpts | undefined
+{
     const argv = yargs
     .usage("Publishes a Node package to a Git repo.\nUsage: $0 [--dry-run] source_directory")
     .help()
@@ -32,6 +34,15 @@ function parseArgs(): ICmdLineOpts | undefined {
             default: false,
             demandOption: false,
             describe: "Perform all operations but do not push to origin"
+        }
+    )
+    .option(
+        "tag",
+        {
+            demandOption: false,
+            describe: "An additional tag to apply to the published commit (can " +
+                      "be used multiple times).  If the tag already exists, it " +
+                      "will be moved."
         }
     )
     .version()  // version will be read from package.json!
@@ -49,10 +60,15 @@ function parseArgs(): ICmdLineOpts | undefined {
         return undefined;
     }
 
-    const cmdLineOpts = {
+    const cmdLineOpts: ICmdLineOpts = {
         dryRun: argv["dry-run"],
         srcDir: srcDir
     };
+
+    if (argv.tag) {
+        cmdLineOpts.additionalTags = [].concat(argv.tag);
+    }
+
     return cmdLineOpts;
 }
 
@@ -208,11 +224,28 @@ async function main(): Promise<void>
     const commitMsg = `publish-to-git publishing version ${src.version.getPatchVersionString()}.`;
     await publishRepo.commit(commitMsg);
 
-    // Apply a tag with the version number.
-    // TODO: If the source repo has a CHANGELOG.md, add its contents at the annotated tag message.
-    console.log(`Applying tag: ${newTagName}`);
-    await publishRepo.createTag(newTagName);
+    // TODO: If the source repo has a CHANGELOG.md, add its contents as the annotated tag message.
 
+    //
+    // Apply tags.
+    // We know that newTagName does not exist, because it was checked for earlier.
+    // We will "force" tag creation for additional tags, assuming the user wants
+    // to move it if it already exists.
+    //
+    let tags = [newTagName];
+
+    if (cmdLineOpts.additionalTags) {
+       tags = tags.concat(cmdLineOpts.additionalTags);
+    }
+
+    await Promise.all(_.map(tags, (curTag) => {
+        console.log(`Creating tag: ${curTag}`);
+        return publishRepo.createTag(curTag, "", true);
+    }));
+
+    //
+    // If doing a "dry run", stop.
+    //
     if (cmdLineOpts.dryRun)
     {
         const msg = [
@@ -224,10 +257,19 @@ async function main(): Promise<void>
         return;
     }
 
-    // Push the branch and the tag.
-    console.log("Pushing to origin...");
+    //
+    // Push the branch.
+    //
+    console.log("Pushing branch to origin...");
     await publishRepo.pushCurrentBranch("origin");
-    await publishRepo.pushTag(newTagName, "origin");
+
+    //
+    // Push all tags.
+    //
+    await Promise.all(_.map(tags, (curTag) => {
+        console.log(`Pushing tag ${curTag} to origin.`);
+        return publishRepo.pushTag(curTag, "origin", true);
+    }));
 
     //
     // Print a completion message.

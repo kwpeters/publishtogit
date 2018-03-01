@@ -266,9 +266,18 @@ export class GitRepo
     }
 
 
-    public createTag(tagName: string, message: string = ""): Promise<GitRepo>
+    public createTag(tagName: string, message: string = "", force: boolean = false): Promise<GitRepo>
     {
-        return spawn("git", ["tag", "-a", tagName, "-m", message], this._dir.toString())
+        let args = ["tag"];
+
+        if (force) {
+            args.push("-f");
+        }
+
+        args = _.concat(args, "-a", tagName);
+        args = _.concat(args, "-m", message);
+
+        return spawn("git", args, this._dir.toString())
         .then(() => {
             return this;
         });
@@ -295,9 +304,17 @@ export class GitRepo
     }
 
 
-    public pushTag(tagName: string, remoteName: string): Promise<GitRepo>
+    public pushTag(tagName: string, remoteName: string, force: boolean = false): Promise<GitRepo>
     {
-        return spawn("git", ["push", remoteName, tagName], this._dir.toString())
+        let args = ["push"];
+
+        if (force) {
+            args.push("--force");
+        }
+
+        args = _.concat(args, remoteName, tagName);
+
+        return spawn("git", args, this._dir.toString())
         .then(() => {
             return this;
         });

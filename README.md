@@ -97,3 +97,18 @@ published Git commit URL.
     used to develop the original source code files.  On the other hand, you may
     want to publish to a separate repository.  For example, you may want to have
     different access permissions for the sources repo and the  publish repo.
+
+# Development
+
+## Doing a release
+
+1.  Commit all work.
+2.  Build the project.
+    ```
+    gulp build
+    ```
+
+3.  Publish.
+    ```
+    ts-node src/publish-to-git.ts --tag latest .
+    ```

@@ -1,6 +1,6 @@
 {
   "name": "publish-to-git",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A command line tool for publishing a npm package to a Git repository",
   "bin": {
     "publish-to-git": "./dist/publish-to-git.js"

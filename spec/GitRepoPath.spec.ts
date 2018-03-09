@@ -29,8 +29,8 @@ describe("GitRepoPath", () => {
 
 
         describe("fromDirectory()", () => {
-            
-            
+
+
             it("will reject when given a nonexistent directory", async () => {
                 const dir = new Directory(tmpDir, "xyzzy");
 
@@ -42,7 +42,6 @@ describe("GitRepoPath", () => {
                 catch (err)
                 {
                 }
-
             });
 
 

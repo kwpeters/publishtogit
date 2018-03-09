@@ -7,12 +7,7 @@
     ],
     "ban": false,
     "class-name": true,
-    "comment-format": [
-      false,
-      "check-space",
-      "check-lowercase",
-      "check-uppercase"
-    ],
+    "comment-format": false,
     "curly": true,
     "eofline": true,
     "forin": true,
@@ -33,7 +28,7 @@
     "no-arg": true,
     "no-bitwise": false,
     "no-conditional-assignment": true,
-    "no-consecutive-blank-lines": false,
+    "no-consecutive-blank-lines": [true, 20],
     "no-console": [
       true,
       "debug",
@@ -57,17 +52,11 @@
     "no-trailing-whitespace": false,
     "no-unused-expression": true,
     "no-unused-variable": true,
-    "no-use-before-declare": false,
+    "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": true,
     "object-literal-sort-keys": false,
-    "one-line": [
-      false,
-      "check-open-brace",
-      "check-catch",
-      "check-else",
-      "check-whitespace"
-    ],
+    "one-line": false,
     "quotemark": [
       true,
       "avoid-escape"

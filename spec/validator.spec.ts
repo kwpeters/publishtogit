@@ -36,7 +36,7 @@ describe("Validator", () => {
         });
     });
 
-    
+
     describe("instance", () => {
 
 

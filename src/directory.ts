@@ -465,7 +465,7 @@ export class Directory
                 return this.copy(thisDest, false);
             });
         }
-        
+
         return this.contents()
         .then((contents: IDirectoryContents) => {
             // Copy the files in this directory to the destination.

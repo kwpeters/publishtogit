@@ -95,8 +95,8 @@ describe("promisify2()", () => {
 
 
 describe("sequence()", () => {
-    
-    
+
+
     it("should execute the functions in order", (done) => {
 
         const tasks: Array<(previousValue: any) => Promise<any>> = [

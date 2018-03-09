@@ -100,14 +100,17 @@ published Git commit URL.
 
 # Development
 
-## Doing a release
+## Creating a release
 
-1.  Build the project.
+1.  Update the version in package.json according to semver rules.
+2.  Update CHANGELOG.md to describe changes.
+3.  Update README.md if necessary.
+4.  Commit all work.
+5.  Build the project.
     ```
     gulp build
     ```
-
-2.  Publish.
+6.  Publish.
     ```
     ts-node src/publish-to-git.ts --tag latest .
     ```

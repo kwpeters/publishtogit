@@ -91,6 +91,9 @@ Promise<{
         return Promise.reject(new Error(`The directory ${cmdLineOpts.srcDir.toString()} is not a NPM package.`));
     });
 
+    // TODO: Make sure the specified directory does not have any uncommitted
+    // files.
+
     // Make sure the specified directory has a publishtogit.json.
     const configFile = new File(cmdLineOpts.srcDir, "publishtogit.json");
     if (!configFile.existsSync()) {
@@ -167,7 +170,7 @@ async function main(): Promise<void>
     const hasTag = await publishRepo.hasTag(newTagName);
     if (hasTag)
     {
-        const msg = `The publish repo already has tag ${src.version.getPatchVersionString()}. ` +
+        const msg = `The publish repo already has tag ${newTagName}. ` +
             "Have you forgotten to bump the version number?";
         console.log(msg);
         throw new Error(msg);
@@ -221,7 +224,7 @@ async function main(): Promise<void>
     //
     console.log("Commiting published files...");
     await publishRepo.stageAll();
-    const commitMsg = `publish-to-git publishing version ${src.version.getPatchVersionString()}.`;
+    const commitMsg = `publish-to-git publishing version ${newTagName}.`;
     await publishRepo.commit(commitMsg);
 
     // TODO: If the source repo has a CHANGELOG.md, add its contents as the annotated tag message.
@@ -276,6 +279,7 @@ async function main(): Promise<void>
     // Tell the user how to include the published repository into another
     // project's dependencies.
     //
+    // TODO: Include install commands for commit hash and all tags.
     const dependencyUrl = Url.setProtocol(src.publishToGitConfig.publishRepository, "git+https");
     const npmInstallCmd = `npm install ${dependencyUrl}#${newTagName}`;
     const doneMessage = [

@@ -1,15 +1,4 @@
-import * as _ from "lodash";
-
-//
-// A regex that will parse the parts of a version string.
-//
-// optional non-capturing group - Matches an optional word followed by optional
-//     whitespace.
-// match[1] - The major version number
-// match[2] - The minor version number
-// match[3] - The patch version number
-//
-const SEMVER_REGEXP = /^(?:\w*?\s*?)?(\d+)\.(\d+)\.(\d+)$/;
+import * as semver from "semver";
 
 
 //
@@ -22,44 +11,26 @@ export class SemVer
 {
     public static sort(arr: Array<SemVer>): Array<SemVer>
     {
-        return _.sortBy<SemVer>(
-            arr,
-            [
-                (semver: SemVer) => semver.major,
-                (semver: SemVer) => semver.minor,
-                (semver: SemVer) => semver.patch
-            ]
-        );
+        return arr.sort((semverA, semverB) => {
+            return semver.compare(semverA._semver, semverB._semver);
+        });
     }
 
     public static fromString(str: string): SemVer | undefined
     {
-        const matches = SEMVER_REGEXP.exec(str);
-        if (matches)
-        {
-            return new SemVer(parseInt(matches[1], 10),
-                              parseInt(matches[2], 10),
-                              parseInt(matches[3], 10));
-        }
-        else
-        {
-            return undefined;
-        }
+        const sv = semver.parse(str);
+        return sv ? new SemVer(sv) : undefined;
     }
 
 
     //region Data Members
-    private _major: number;   // "Breaking"
-    private _minor: number;   // "Feature"
-    private _patch: number;   // "Fix"
+    private _semver: semver.SemVer;
     //endregion
 
 
-    private constructor(major: number, minor: number, patch: number)
+    private constructor(semver: semver.SemVer)
     {
-        this._major = major;
-        this._minor = minor;
-        this._patch = patch;
+        this._semver = semver;
     }
 
 
@@ -69,7 +40,7 @@ export class SemVer
      */
     public toString(): string
     {
-        return `${this._major}.${this._minor}.${this._patch}`;
+        return this._semver.toString();
     }
 
 
@@ -78,7 +49,7 @@ export class SemVer
      */
     public get major(): number
     {
-        return this._major;
+        return this._semver.major;
     }
 
 
@@ -87,7 +58,7 @@ export class SemVer
      */
     public get minor(): number
     {
-        return this._minor;
+        return this._semver.minor;
     }
 
 
@@ -96,7 +67,32 @@ export class SemVer
      */
     public get patch(): number
     {
-        return this._patch;
+        return this._semver.patch;
+    }
+
+
+    public get prerelease(): {type: string, version?: number} | undefined
+    {
+        // The type definition for semver.prerelease is Array<string>, which is
+        // wrong.  Unfortunately, in TS, tuples cannot have optional values, so
+        // in order to make this more strongly typed we will convert it into an
+        // object.  In order to do the conversion, we must temporarily treat the
+        // returned array as an Array<any>.
+        const prereleaseParts: Array<any> = this._semver.prerelease;
+
+        if (prereleaseParts.length === 0)
+        {
+            return undefined;
+        }
+
+        const prerelease: {type: string, version?: number} = {type: prereleaseParts[0]};
+
+        if (prereleaseParts.length >= 2)
+        {
+            prerelease.version = prereleaseParts[1];
+        }
+
+        return prerelease;
     }
 
 
@@ -107,7 +103,7 @@ export class SemVer
      */
     public getMajorVersionString(): string
     {
-        return `${VERSION_STRING_PREFIX}${this._major}`;
+        return `${VERSION_STRING_PREFIX}${this._semver.major}`;
     }
 
 
@@ -118,7 +114,7 @@ export class SemVer
      */
     public getMinorVersionString(): string
     {
-        return `${VERSION_STRING_PREFIX}${this._major}.${this._minor}`;
+        return `${VERSION_STRING_PREFIX}${this._semver.major}.${this._semver.minor}`;
     }
 
 
@@ -129,7 +125,7 @@ export class SemVer
      */
     public getPatchVersionString(): string
     {
-        return `${VERSION_STRING_PREFIX}${this._major}.${this._minor}.${this._patch}`;
+        return `${VERSION_STRING_PREFIX}${this._semver.major}.${this._semver.minor}.${this._semver.patch}`;
     }
 
 
@@ -142,41 +138,7 @@ export class SemVer
      */
     public compare(other: SemVer): -1 | 0 | 1
     {
-        if (this._major < other._major)
-        {
-            return -1;
-        }
-        else if (this._major > other._major)
-        {
-            return 1;
-        }
-        else
-        {
-            // Major numbers are equal.
-            if (this._minor < other._minor)
-            {
-                return -1;
-            }
-            else if (this._minor > other._minor)
-            {
-                return 1;
-            }
-            else
-            {
-                // Major and minor are equal.
-                if (this._patch < other._patch)
-                {
-                    return -1;
-                }
-                else if (this._patch > other._patch)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
+        return semver.compare(this._semver, other._semver);
     }
+
 }

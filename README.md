@@ -1,4 +1,4 @@
-# publish-to-git
+# publishtogit
 A command line tool for publishing a NPM package to a Git repository.  This tool
 can significantly simplify the development and distribution of Node.js libraries
 that are authored in a language that transpiles to JavaScript.
@@ -33,7 +33,7 @@ them can be problematic for the following reasons:
   tools that will only be used once.  This is wasteful.  It would be far better to
   download the library in a "ready to use" state.
 
-publish-to-git solves many of these problems by publishing a Node.js package to
+publishtogit solves many of these problems by publishing a Node.js package to
 the **Git repository** itself instead of the public NPM registry.  Because the
 published files are committed on a separate branch, published releases can be
 kept in the same repository as the original sources.  Doing this has the
@@ -46,14 +46,14 @@ advantages:
   URL.  But that brought with it the requirement that the set of files you
   published had to equal the set of files kept under version control.  That
   requirement is untenable for a library written in a transpiled language.  With
-  publish-to-git, the published files (and only the published files) are committed
+  publishtogit, the published files (and only the published files) are committed
   on a separate branch.  This allows the set of files under version control to be
   unreleated to the set of published files.
 - Users of the library receive the library in a "ready to use" form.  They do
   not have to transpile the library, nor do they have to install any of the
   library's build tools.
 
-## What publish-to-git Does
+## What publishtogit Does
 1.  The current working directory is checked to make sure you are in a NPM
     project under Git version control.  This project is the _development repo_.  The
     project is checked to make sure you don't have any modified files or untracked
@@ -74,8 +74,8 @@ advantages:
 7.  Library users may now consume the published library by specifying the
     published Git commit URL.
 
-## How to use publish-to-git
-1.  Install publish-to-git.  If you want to install it globally:
+## How to use publishtogit
+1.  Install publishtogit.  If you want to install it globally:
     ```
     npm install -g https://github.com/kwpeters/publishtogit.git#latest
     ```
@@ -99,5 +99,5 @@ advantages:
     ```
 6.  Publish.
     ```
-    ts-node src/publish-to-git.ts --tag latest .
+    ts-node src/publishtogit.ts --tag latest .
     ```

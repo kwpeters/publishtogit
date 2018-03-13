@@ -99,5 +99,5 @@ advantages:
     ```
 6.  Publish.
     ```
-    ts-node src/publishtogit.ts --tag latest .
+    ts-node src/publishtogit.ts --tag-version --tag latest --force-tags
     ```

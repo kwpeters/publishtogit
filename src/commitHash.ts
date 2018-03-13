@@ -27,4 +27,10 @@ export class CommitHash
     {
         return this._hash;
     }
+
+
+    public toShortString(): string
+    {
+        return this._hash.slice(0, 7);
+    }
 }

@@ -39,4 +39,32 @@ describe("CommitHash", () => {
     });
 
 
+    describe("instance", () => {
+
+        describe("toString()", () => {
+
+
+            it("will return the hash as a string", () => {
+                const hash = CommitHash.fromString("d667bf542896f467b4f9a98b3fb18f1a0ab9d23f");
+                expect(hash!.toString()).toEqual("d667bf542896f467b4f9a98b3fb18f1a0ab9d23f");
+            });
+
+
+        });
+
+
+        describe("toShortString()", () => {
+
+
+            it("will return a shorter version of the hash", () => {
+                const hash = CommitHash.fromString("d667bf542896f467b4f9a98b3fb18f1a0ab9d23f");
+                expect(hash!.toShortString()).toEqual("d667bf5");
+            });
+
+
+        });
+
+    });
+
+
 });

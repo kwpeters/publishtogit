@@ -228,7 +228,7 @@ async function main(): Promise<void>
     ].concat(_.map(instanceConfig.tags, (curTagName) => {
         return `npm install ${dependencyUrl}#${curTagName}`;
     }))
-    .concat(`npm install ${dependencyUrl}#${publishCommitHash.toString()}`);
+    .concat(`npm install ${dependencyUrl}#${publishCommitHash.toShortString()}`);
     console.log(doneMessage.join("\n"));
 }
 

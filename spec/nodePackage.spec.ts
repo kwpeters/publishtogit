@@ -57,7 +57,7 @@ describe("NodePackage", () => {
                 const pkgDir = new Directory(__dirname, "..");
                 NodePackage.fromDirectory(pkgDir)
                 .then((pkg) => {
-                    expect(pkg.config.name).toEqual("publish-to-git");
+                    expect(pkg.config.name).toEqual("publishtogit");
                     expect(pkg.config.version).toBeTruthy();
                     expect(pkg.config.description).toBeTruthy();
                     expect(pkg.config.repository).toBeTruthy();
@@ -80,7 +80,7 @@ describe("NodePackage", () => {
                 })
                 .then((packedFile: File) => {
                     expect(packedFile).toBeTruthy();
-                    expect(packedFile.fileName).toMatch(/publish-to-git-\d+\.\d+\.\d+\.tgz/);
+                    expect(packedFile.fileName).toMatch(/publishtogit-\d+\.\d+\.\d+\.tgz/);
                     expect(packedFile.existsSync()).toBeTruthy();
                     done();
                 });

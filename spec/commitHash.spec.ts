@@ -5,7 +5,7 @@ describe("CommitHash", () => {
     describe("static", () => {
 
 
-        fdescribe("fromString()", () => {
+        describe("fromString()", () => {
 
 
             it("will return a new instance if legal", () => {

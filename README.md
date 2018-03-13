@@ -84,6 +84,7 @@ advantages:
     npm install https://github.com/kwpeters/publishtogit.git#latest
     ```
 2.  Run `publishtogit --help` for usage information.
+
 # Development
 
 ## Creating a release

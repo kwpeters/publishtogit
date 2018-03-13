@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] 2018-03-13
+### Changed
+Significantly changed the way this tool publishes to Git.
+  - The same repo that is used for development is always used to publishing.
+  - When publishing, branches are not created for the major and minor release
+    numbers.  Now a release directly branches off of the code that was used to
+    build it.
+### Removed
+- `publishtogit.json` is no longer used.
+
 ## [1.0.5] 2018-03-09
 ### Added
 - SemVer now supports prerelease strings.

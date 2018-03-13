@@ -1,11 +1,11 @@
-.gitignore
 /.idea/
-.npmignore
-.nvmrc
-gulpfile.js
-publishtogit.json
 /spec/
 /src/
 /tmp/
+.gitignore
+.npmignore
+.nvmrc
+changelog-template.md
+gulpfile.js
 tsconfig.json
 tslint.json

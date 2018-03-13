@@ -21,6 +21,7 @@ interface IInstanceConfig
     pkg: NodePackage;
     dryRun: boolean;
     tags: Array<string>;
+    forceTags: boolean;
 }
 
 
@@ -45,6 +46,14 @@ function getArgs(): yargs.Arguments
             default: false,
             demandOption: false,
             describe: "Apply a tag with the project's version number (from package.json) to the publish commit"
+        }
+    )
+    .option("force-tags",
+        {
+            type: "boolean",
+            default: false,
+            demandOption: false,
+            describe: "Forces tags to be applied, moving any that already exist"
         }
     )
     .option("dry-run",
@@ -85,7 +94,8 @@ async function getInstanceConfig(argv: yargs.Arguments): Promise<IInstanceConfig
         dryRun: argv["dry-run"],
         tags: tags,
         devRepo: devRepo,
-        pkg: pkg
+        pkg: pkg,
+        forceTags: argv["force-tags"]
     };
 }
 
@@ -112,14 +122,17 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
         throw new Error("Package does not have a version.");
     }
 
-    // Check to see if the repo already has any of the new tags to be applied.
-    const existingTags = await instanceConfig.devRepo.tags();
-    const alreadyExist = _.intersection(existingTags, instanceConfig.tags);
-    if (alreadyExist.length > 0)
+    // If we are not forcing (i.e. moving) tags, then make sure none of the tags
+    // we are applying already exist.
+    if (!instanceConfig.forceTags)
     {
-        throw new Error(`The following tags already exist: ${alreadyExist.join(", ")}`);
+        const existingTags = await instanceConfig.devRepo.tags();
+        const alreadyExist = _.intersection(existingTags, instanceConfig.tags);
+        if (alreadyExist.length > 0)
+        {
+            throw new Error(`The following tags already exist: ${alreadyExist.join(", ")}`);
+        }
     }
-
 }
 
 
@@ -179,13 +192,12 @@ async function main(): Promise<void>
 
     // TODO: If the source repo has a CHANGELOG.md, add its contents as the annotated tag message.
 
-    const publishCommitHash = publishRepo.currentCommitHash();
+    const publishCommitHash = await publishRepo.currentCommitHash();
 
     // Apply tags.
-    // We already know that none of the requested tags already exist.
     await Promise.all(_.map(instanceConfig.tags, (curTagName) => {
         console.log(`Creating tag ${curTagName}...`);
-        return publishRepo.createTag(curTagName, "", false);
+        return publishRepo.createTag(curTagName, "", true);
     }));
 
     // If doing a "dry run", stop.

@@ -34,21 +34,21 @@ describe("Url", () => {
 
             it("will replace the protocol with the same one", () => {
                 const url = Url.fromString("git+https://github.com/kwpeters/sampleGitRepo.git");
-                expect(url.replaceProtocol("git+https").toString())
+                expect(url!.replaceProtocol("git+https").toString())
                 .toEqual("git+https://github.com/kwpeters/sampleGitRepo.git");
             });
 
 
             it("will replace the protocol with a different one", () => {
                 const url = Url.fromString("git://github.com/kwpeters/sampleGitRepo.git");
-                expect(url.replaceProtocol("https").toString())
+                expect(url!.replaceProtocol("https").toString())
                 .toEqual("https://github.com/kwpeters/sampleGitRepo.git");
             });
 
 
             it("will replace a protocol with multiple protocols", () => {
                 const url = Url.fromString("https://github.com/kwpeters/sampleGitRepo.git");
-                expect(url.replaceProtocol("git+https").toString())
+                expect(url!.replaceProtocol("git+https").toString())
                 .toEqual("git+https://github.com/kwpeters/sampleGitRepo.git");
             });
 

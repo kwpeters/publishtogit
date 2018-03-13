@@ -3,9 +3,10 @@ import {File} from "./file";
 import {spawn} from "./spawn";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
-import {GitRepoPath} from "./GitRepoPath";
 import * as _ from "lodash";
 import {outdent, trimBlankLines} from "./stringHelpers";
+import {Url, gitUrlToProjectName} from "./url";
+import {CommitHash} from "./commitHash";
 
 
 interface IGitLogEntry
@@ -74,20 +75,35 @@ export class GitRepo
 
     /**
      * Clones a Git repo at the specified location.
-     * @param gitRepoPath - The path to the repository to be cloned
+     * @param src - The source to clone the repo from
      * @param parentDir - The parent directory where the repo will be placed.
      * The repo will be cloned into a subdirectory named after the project.
      * @return A promise for the cloned Git repo.
      */
-    public static clone(gitRepoPath: GitRepoPath, parentDir: Directory): Promise<GitRepo>
+    public static clone(src: Url | Directory, parentDir: Directory): Promise<GitRepo>
     {
-        const projName = gitRepoPath.getProjectName();
+        let projName: string;
+        let srcStr: string;
+
+        if (src instanceof Url)
+        {
+            projName = gitUrlToProjectName(src.toString());
+            const protocols = src.getProtocols();
+            srcStr = protocols.length < 2 ?
+                src.toString() :
+                src.replaceProtocol(protocols[0]).toString();
+        }
+        else
+        {
+            projName = src.dirName;
+            srcStr = src.toString();
+        }
 
         const repoDir = new Directory(parentDir, projName);
 
         return parentDir.exists()
-        .then((isDirectory) => {
-            if (!isDirectory)
+        .then((parentDirExists) => {
+            if (!parentDirExists)
             {
                 throw new Error(`${parentDir} is not a directory.`);
             }
@@ -95,7 +111,7 @@ export class GitRepo
         .then(() => {
             return spawn(
                 "git",
-                ["clone", gitRepoPath.toString(), projName],
+                ["clone", srcStr, projName],
                 parentDir.toString());
         })
         .then(() => {
@@ -161,11 +177,38 @@ export class GitRepo
     {
         return spawn("git", ["ls-files", "-m"], this._dir.toString())
         .then((stdout) => {
-            const fileNames = stdout.split("\n");
-            return _.map(fileNames, (curFileName) => {
-                return new File(this._dir, curFileName);
+            const relativeFilePaths = stdout.split("\n");
+            return _.map(relativeFilePaths, (curRelativeFilePath) => {
+                return new File(this._dir, curRelativeFilePath);
             });
         });
+    }
+
+
+    // TODO: Write unit tests for this method and make sure the files have the
+    // correct preceding path.
+    public untrackedFiles(): Promise<Array<File>>
+    {
+        return spawn("git", ["ls-files",  "--others",  "--exclude-standard"], this._dir.toString())
+        .then((stdout) => {
+            const relativeFilePaths = stdout.split("\n");
+            return _.map(relativeFilePaths, (curRelativePath) => {
+                return new File(this._dir, curRelativePath);
+            });
+        });
+    }
+
+
+    // TODO: Write unit tests for this method.  Make sure there is no leading or trailing whiespace.
+    public async currentCommitHash(): Promise<CommitHash>
+    {
+        const stdout = await spawn("git", ["rev-parse", "--verify", "HEAD"], this._dir.toString());
+        const hash = CommitHash.fromString(stdout);
+        if (!hash)
+        {
+            throw new Error("Failed to construct CommitHash.");
+        }
+        return hash;
     }
 
 
@@ -209,11 +252,7 @@ export class GitRepo
             if (remoteNames.length > 0)
             {
                 const remoteUrl = remotes[remoteNames[0]];
-                const gitRepoPath = GitRepoPath.fromUrl(remoteUrl);
-                if (gitRepoPath)
-                {
-                    return gitRepoPath.getProjectName();
-                }
+                return gitUrlToProjectName(remoteUrl);
             }
         })
         .then((projName) => {
@@ -367,7 +406,7 @@ export class GitRepo
     }
 
 
-    public async checkout(branch: GitBranch, createIfNonexistent: boolean): Promise<void>
+    public async checkoutBranch(branch: GitBranch, createIfNonexistent: boolean): Promise<void>
     {
         if (createIfNonexistent)
         {
@@ -387,6 +426,12 @@ export class GitRepo
         ];
 
         await spawn("git", args, this._dir.toString());
+    }
+
+
+    public async checkoutCommit(commit: CommitHash): Promise<void>
+    {
+        await spawn("git", ["checkout", commit.toString()], this._dir.toString());
     }
 
 

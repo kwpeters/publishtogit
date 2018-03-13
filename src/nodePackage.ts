@@ -3,6 +3,7 @@ import {Directory} from "./directory";
 import {File} from "./file";
 import {spawn} from "./spawn";
 import {config} from "./publishToGitConfig";
+import {gitUrlToProjectName} from "./url";
 
 
 export interface IPackageJson
@@ -16,11 +17,6 @@ export interface IPackageJson
 
 export class NodePackage
 {
-    //region Data members
-    private _pkgDir: Directory;
-    private _config: IPackageJson | undefined;
-    //endregion
-
 
     /**
      * Creates a NodePackage representing the package in the specified directory.
@@ -55,6 +51,12 @@ export class NodePackage
     }
 
 
+    //region Data members
+    private _pkgDir: Directory;
+    private _config: IPackageJson | undefined;
+    //endregion
+
+
     /**
      * Constructs a new NodePackage.  This constructor is private and should not
      * be called by clients.  Instead, use one of the static methods to create
@@ -68,6 +70,13 @@ export class NodePackage
     private constructor(pkgDir: Directory)
     {
         this._pkgDir = pkgDir;
+    }
+
+
+    // TODO: Write unit tests for the following method.
+    public get projectName(): string
+    {
+        return gitUrlToProjectName(this.config.repository.url);
     }
 
 

@@ -3,7 +3,7 @@ import {sampleRepoDir, sampleRepoUrl, tmpDir} from "./specHelpers";
 import {Directory} from "../src/directory";
 import {File} from "../src/file";
 import * as _ from "lodash";
-import {GitRepoPath} from "../src/GitRepoPath";
+import {Url} from "../src/url";
 
 
 describe("GitRepo", () => {
@@ -43,10 +43,10 @@ describe("GitRepo", () => {
 
 
             it("will clone a repository on the Internet", async () => {
-                const gitRepoPath = GitRepoPath.fromUrl(sampleRepoUrl);
-                expect(gitRepoPath).toBeTruthy();
+                const repoUrl = Url.fromString(sampleRepoUrl);
+                expect(repoUrl).toBeTruthy();
 
-                const repo = await GitRepo.clone(gitRepoPath!, tmpDir);
+                const repo = await GitRepo.clone(repoUrl!, tmpDir);
                 expect(repo).toBeTruthy();
 
                 expect(new Directory(tmpDir, "sampleGitRepo-src").existsSync()).toBeTruthy();
@@ -55,8 +55,7 @@ describe("GitRepo", () => {
 
 
             it("will clone a repository from a local directory", async () => {
-                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
-                const repo = await GitRepo.clone(gitRepoPath, tmpDir);
+                const repo = await GitRepo.clone(sampleRepoDir, tmpDir);
 
                 expect(repo).toBeTruthy();
                 expect(new Directory(tmpDir, "sampleGitRepo-src").existsSync()).toBeTruthy();
@@ -82,9 +81,7 @@ describe("GitRepo", () => {
 
 
             it("will return the files under version control", async () => {
-                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
-
-                const repo = await GitRepo.clone(gitRepoPath, tmpDir);
+                const repo = await GitRepo.clone(sampleRepoDir, tmpDir);
                 const files = await repo.files();
 
                 expect(_.findIndex(files, {fileName: "package.json"})).toBeGreaterThanOrEqual(0);
@@ -159,16 +156,14 @@ describe("GitRepo", () => {
             it("will return false for two GitRepos pointing at different directories", async () => {
                 tmpDir.emptySync();
 
-                const gitRepoPath = await GitRepoPath.fromDirectory(sampleRepoDir);
-
                 const dir1 = new Directory(tmpDir, "dir1");
                 dir1.ensureExistsSync();
 
                 const dir2 = new Directory(tmpDir, "dir2");
                 dir2.ensureExistsSync();
 
-                const repo1 = await GitRepo.clone(gitRepoPath, dir1);
-                const repo2 = await GitRepo.clone(gitRepoPath, dir2);
+                const repo1 = await GitRepo.clone(sampleRepoDir, dir1);
+                const repo2 = await GitRepo.clone(sampleRepoDir, dir2);
                 expect(repo1.equals(repo2)).toBeFalsy();
             });
         });
@@ -341,7 +336,7 @@ describe("GitRepo", () => {
             it("will return the current branch", async () => {
                 const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
                 const curBranch = await repo.getCurrentBranch();
-                expect(curBranch.name).toEqual("master");
+                expect(curBranch.name.length).toBeGreaterThan(0);
             });
 
 
@@ -352,8 +347,7 @@ describe("GitRepo", () => {
 
 
             it("returns the expected entries", async () => {
-                const path = await GitRepoPath.fromDirectory(sampleRepoDir);
-                const repo = await GitRepo.clone(path, tmpDir);
+                const repo = await GitRepo.clone(sampleRepoDir, tmpDir);
 
                 const log = await repo.getLog();
                 expect(log.length).toBeGreaterThan(0);

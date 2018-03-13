@@ -91,7 +91,7 @@ export class GitRepo
             const protocols = src.getProtocols();
             srcStr = protocols.length < 2 ?
                 src.toString() :
-                src.replaceProtocol(protocols[0]).toString();
+                src.replaceProtocol("https").toString();
         }
         else
         {

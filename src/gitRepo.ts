@@ -177,6 +177,10 @@ export class GitRepo
     {
         return spawn("git", ["ls-files", "-m"], this._dir.toString())
         .then((stdout) => {
+            if (stdout === "")
+            {
+                return [];
+            }
             const relativeFilePaths = stdout.split("\n");
             return _.map(relativeFilePaths, (curRelativeFilePath) => {
                 return new File(this._dir, curRelativeFilePath);
@@ -191,6 +195,10 @@ export class GitRepo
     {
         return spawn("git", ["ls-files",  "--others",  "--exclude-standard"], this._dir.toString())
         .then((stdout) => {
+            if (stdout === "")
+            {
+                return [];
+            }
             const relativeFilePaths = stdout.split("\n");
             return _.map(relativeFilePaths, (curRelativePath) => {
                 return new File(this._dir, curRelativePath);

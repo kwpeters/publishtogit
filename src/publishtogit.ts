@@ -206,12 +206,9 @@ async function main(): Promise<void>
         return publishRepo.pushTag(curTagName, "origin", true);
     }));
 
-    //
     // Print a completion message.
     // Tell the user how to include the published repository into another
     // project's dependencies.
-    //
-    // TODO: Include install commands for commit hash and all tags.
     const dependencyUrl = repoUrl.replaceProtocol("git+https").toString();
     const doneMessage = [
         "Done.",

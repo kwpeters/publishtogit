@@ -124,7 +124,7 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
     }
 
     // The development repo should be pushed to origin.
-    const deltas = await instanceConfig.devRepo.getCommitDeltas();
+    const deltas = await instanceConfig.devRepo.getCommitDeltas("origin");
     if ((deltas.ahead > 0) || (deltas.behind > 0))
     {
         throw new Error(`The branch is ${deltas.ahead} commits ahead and ${deltas.behind} commits behind.`);

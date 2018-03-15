@@ -116,6 +116,13 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
         throw new Error("This repository contains untracked files.");
     }
 
+    // The development repo should be at the head of a Git branch.
+    const devBranch = await instanceConfig.devRepo.getCurrentBranch();
+    if (!devBranch)
+    {
+        throw new Error("HEAD does not current point to a branch.");
+    }
+
     // Make sure the directory is a Node package.
     if (!instanceConfig.pkg.config.version)
     {
@@ -153,6 +160,7 @@ async function main(): Promise<void>
     await checkInitialConditions(instanceConfig);
 
     const devCommitHash = await instanceConfig.devRepo.currentCommitHash();
+    const devBranch = (await instanceConfig.devRepo.getCurrentBranch())!;
 
     // Clear out space for the publish repo.
     const publishDir = new Directory(globalConfig.tmpDir, instanceConfig.pkg.projectName);
@@ -197,7 +205,11 @@ async function main(): Promise<void>
     // Apply tags.
     await Promise.all(_.map(instanceConfig.tags, (curTagName) => {
         console.log(`Creating tag ${curTagName}...`);
-        return publishRepo.createTag(curTagName, "", true);
+        const tagMessage =
+            `Published from branch ${devBranch.name} ` +
+            `commit ${devCommitHash.toString()} [${devCommitHash.toShortString()}] ` +
+            `by ${userInfo().username}.`;
+        return publishRepo.createTag(curTagName, tagMessage, true);
     }));
 
     // If doing a "dry run", stop.

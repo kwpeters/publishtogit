@@ -183,8 +183,8 @@ async function main(): Promise<void>
     const publishRepo = await GitRepo.clone(repoUrl, globalConfig.tmpDir);
 
     // Checkout the commit the devRepo is at.
-    publishRepo.checkoutCommit(devCommitHash);
-    console.log(`Checking out current development commit ${devCommitHash}...`);
+    console.log(`Checking out current development commit ${devCommitHash.toShortString()}...`);
+    await publishRepo.checkoutCommit(devCommitHash);
 
     // Create a temporary branch on which the published files will be committed.
     console.log("Creating temporary branch...");
@@ -252,9 +252,6 @@ async function main(): Promise<void>
 }
 
 
-main();
-
-
 async function checkoutTempBranch(repo: GitRepo, baseName: string): Promise<GitBranch>
 {
     const now = new Date();
@@ -285,3 +282,10 @@ async function deleteTrackedFiles(repo: GitRepo): Promise<void>
 
     await Promise.all(deletePromises);
 }
+
+
+main()
+.catch((err) => {
+    console.log(JSON.stringify(err, undefined, 4));
+    throw err;
+});

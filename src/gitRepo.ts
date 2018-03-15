@@ -11,6 +11,7 @@ import {CommitHash} from "./commitHash";
 
 interface IGitLogEntry
 {
+    // TODO: Change the following to an instance of CommitHash.
     commitHash: string;
     author: string;
     timestamp: Date;
@@ -489,6 +490,41 @@ export class GitRepo
         .catch((err) => {
             console.log(`Error pushing current branch: ${JSON.stringify(err)}`);
             throw err;
+        });
+    }
+
+
+    // TODO: Write unit tests for the following method.
+    public async getCommitDeltas(trackingRemote: string = "origin"): Promise<{ahead: number, behind: number}>
+    {
+        const branch = await this.getCurrentBranch();
+        if (!branch)
+        {
+            throw new Error("Cannot getNumCommitsAhead() when HEAD is not on a branch.");
+        }
+
+        // The names of the two branches in question.
+        const thisBranchName = branch.name;
+        const trackingBranchName = `${trackingRemote}/${thisBranchName}`;
+
+        const numAheadPromise = spawn(
+            "git",
+            ["rev-list", thisBranchName, "--not", trackingBranchName, "--count"],
+            this._dir.toString()
+        );
+
+        const numBehindPromise = spawn(
+            "git",
+            ["rev-list", trackingBranchName, "--not", thisBranchName, "--count"],
+            this._dir.toString()
+        );
+
+        return Promise.all([numAheadPromise, numBehindPromise])
+        .then((results) => {
+            return {
+                ahead: parseInt(results[0], 10),
+                behind: parseInt(results[1], 10)
+            };
         });
     }
 

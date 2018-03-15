@@ -123,6 +123,13 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
         throw new Error("HEAD does not current point to a branch.");
     }
 
+    // The development repo should be pushed to origin.
+    const deltas = await instanceConfig.devRepo.getCommitDeltas();
+    if ((deltas.ahead > 0) || (deltas.behind > 0))
+    {
+        throw new Error(`The branch is ${deltas.ahead} commits ahead and ${deltas.behind} commits behind.`);
+    }
+
     // Make sure the directory is a Node package.
     if (!instanceConfig.pkg.config.version)
     {

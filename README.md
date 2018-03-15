@@ -92,7 +92,7 @@ advantages:
 1.  Update the version in package.json according to semver rules.
 2.  Update CHANGELOG.md to describe changes.
 3.  Update README.md if necessary.
-4.  Commit all work.
+4.  Commit all work and push to origin.
 5.  Build the project.
     ```
     gulp build

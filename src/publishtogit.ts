@@ -213,9 +213,9 @@ async function main(): Promise<void>
     await Promise.all(_.map(instanceConfig.tags, (curTagName) => {
         console.log(`Creating tag ${curTagName}...`);
         const tagMessage =
-            `Published from branch ${devBranch.name} ` +
-            `commit ${devCommitHash.toString()} [${devCommitHash.toShortString()}] ` +
-            `by ${userInfo().username}.`;
+            "Published using publishtogit.\n" +
+            `Source branch: ${devBranch.name}\n` +
+            `Source commit: ${devCommitHash.toString()} [${devCommitHash.toShortString()}]`;
         return publishRepo.createTag(curTagName, tagMessage, true);
     }));
 

@@ -207,7 +207,7 @@ export class GitRepo
     }
 
 
-    // TODO: Write unit tests for this method.  Make sure there is no leading or trailing whiespace.
+    // TODO: Write unit tests for this method.  Make sure there is no leading or trailing whitespace.
     public async currentCommitHash(): Promise<CommitHash>
     {
         const stdout = await spawn("git", ["rev-parse", "--verify", "HEAD"], this._dir.toString());
@@ -402,11 +402,27 @@ export class GitRepo
     }
 
 
-    public async getCurrentBranch(): Promise<GitBranch>
+    public async getCurrentBranch(): Promise<GitBranch | undefined>
     {
-        // FUTURE: I don't think the following will work when in detached head state.
-        const stdout = await spawn("git", ["rev-parse", "--abbrev-ref", "HEAD"], this._dir.toString());
-        const branchName = stdout.trim();
+        // When on master:
+        // git symbolic-ref HEAD
+        // refs/heads/master
+
+        // When in detached head state:
+        // git symbolic-ref HEAD
+        // fatal: ref HEAD is not a symbolic ref
+
+        // The below command when in detached HEAD state
+        // $ git rev-parse --abbrev-ref HEAD
+        // HEAD
+
+        const branchName = await spawn("git", ["rev-parse", "--abbrev-ref", "HEAD"], this._dir.toString());
+        if (branchName === "HEAD")
+        {
+            // The repo is in detached head state.
+            return undefined;
+        }
+
         const branch = await GitBranch.create(this, branchName);
 
         // All is good.
@@ -455,6 +471,10 @@ export class GitRepo
     public async pushCurrentBranch(remoteName: string = "origin", setUpstream: boolean = false): Promise<void>
     {
         const curBranch = await this.getCurrentBranch();
+        if (!curBranch)
+        {
+            throw new Error("There is no current branch to push.");
+        }
 
         const args = [
             "push",
@@ -566,3 +586,6 @@ export class GitRepo
 
 
 }
+
+// TODO: The following will list all tags pointing to the specified commit.
+// git tag --points-at 34b8bff

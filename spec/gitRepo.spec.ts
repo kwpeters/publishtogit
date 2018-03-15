@@ -4,6 +4,7 @@ import {Directory} from "../src/directory";
 import {File} from "../src/file";
 import * as _ from "lodash";
 import {Url} from "../src/url";
+import {CommitHash} from "../src/commitHash";
 
 
 describe("GitRepo", () => {
@@ -134,7 +135,7 @@ describe("GitRepo", () => {
                 GitRepo.fromDirectory(new Directory(__dirname, ".."))
                 .then((repo) => {
                     expect(repo.directory).toBeTruthy();
-                    expect(repo.directory.absPath()).toContain("publish-to-git");
+                    expect(repo.directory.absPath()).toContain("publishtogit");
                     done();
                 });
             });
@@ -336,7 +337,17 @@ describe("GitRepo", () => {
             it("will return the current branch", async () => {
                 const repo = await GitRepo.fromDirectory(new Directory(__dirname, ".."));
                 const curBranch = await repo.getCurrentBranch();
-                expect(curBranch.name.length).toBeGreaterThan(0);
+                expect(curBranch!.name.length).toBeGreaterThan(0);
+            });
+
+
+            it("will return undefined when in detached head state", async () => {
+                const repo = await GitRepo.clone(sampleRepoDir, tmpDir);
+                // Checkout a commit that has no associated branch pointing at it.
+                await repo.checkoutCommit(CommitHash.fromString("34b8bff")!);
+
+                const branch = await repo.getCurrentBranch();
+                expect(branch).toEqual(undefined);
             });
 
 

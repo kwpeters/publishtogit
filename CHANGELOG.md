@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.0.1] 2018-03-14
 ### Added
-- Made `gitRepo.getCurrentBranch()` resolve with `undefined` when in a detached head state.
+- Made `gitRepo.getCurrentBranch()` resolve with `undefined` when in a detached
+  head state.
+- Added `gitRepo.getCommitDeltas()`.
 ### Changed
 - Enhanced tag messages to include branch name, commit hash and username.
+- Added a check to make sure the development branch is not in a detached head
+  state before publishing.
+- Added a check to make sure the development branch has been pushed to origin
+  before publishing.
+- Changed to location of the temporary directory to `.publishtogit`.  
 
 
 ## [2.0.0] 2018-03-13

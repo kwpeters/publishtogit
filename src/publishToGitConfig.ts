@@ -15,7 +15,7 @@ class PublishToGitConfig
 
     public get tmpDir(): Directory
     {
-        return new Directory(os.homedir(), ".publish-to-git", "tmp");
+        return new Directory(os.homedir(), ".publishtogit", "tmp");
     }
 
     public init(): void

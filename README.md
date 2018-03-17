@@ -16,7 +16,7 @@ distributing them can be problematic for the following reasons:
   within a smaller circle (such as within a company).  Of course, you could
   setup a [private NPM registry](http://lmgtfy.com/?q=private+npm+registry),
   but who really needs yet another server to setup and maintain?
-- Fortunately, NPM provides an alternative to registries; npm allows libraries
+- Fortunately, npm provides an alternative to registries; npm allows libraries
   to be brought into a project simply by referencing the [library's
   URL](https://docs.npmjs.com/files/package.json#urls-as-dependencies).  A URL
   can point at either a Git "commit-ish" or a tarball.  Using a URL that

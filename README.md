@@ -69,7 +69,7 @@ Distributing a NPM package using publishtogit has the following advantages:
   it.  Also, all tags are annotated with the commit and branch name of the
   source commit.
 
-## What publishtogit Does
+## What publishtogit does
 1.  The current working directory is checked to make sure you are in a NPM
     project under Git version control.  This project is the _development repo_.  The
     project is checked to make sure you don't have any modified files or untracked
@@ -105,7 +105,7 @@ Distributing a NPM package using publishtogit has the following advantages:
     ```
 2.  Run `publishtogit --help` for usage information.
 
-# Developing and Releasing Publishtogit
+# Developing and releasing publishtogit
 
 ## Creating a release
 

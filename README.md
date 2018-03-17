@@ -45,7 +45,7 @@ distributing them can be problematic for the following reasons:
 Publishtogit solves many of these problems by:
 - Preparing the library for publishing just as if it were about to be published
   to the public NPM registry.  The `npm pack` command is used to do this, so you
-  are free to customized the set of published files using a .npmignore file.
+  are free to customize the set of published files using a .npmignore file.
 - Then, instead of publishing to the public NPM registry, a Git branch is
   created and the published files are commited.  This commit includes only the
   published files.  Publishtogit also allows the user to specify one or more
@@ -61,12 +61,12 @@ Distributing a NPM package using publishtogit has the following advantages:
   same set of files that are published and provided to consumers.  This is
   crucial when working in transpiled languages.
 - Consuming the library is simple, because all you have to do is use a Git URL
-  that specifies a publish commit.  The library is downloaded in its "ready to
+  that refers to a publish commit.  The library is downloaded in its "ready to
   use" form.  There is no need for every client to install and run any build
   tools.
-- Tracing a particular build to the sources used to build it is easy.  Each
+- Tracing a particular build to the sources used to create it is easy.  Each
   publish commit branches directly from the source commit that was used to build
-  it.  Also, all tags are annotated with the commit and branch name of the
+  it.  Also, all tags are annotated with the commit hash and branch name of the
   source commit.
 
 ## What publishtogit does
@@ -82,24 +82,24 @@ Distributing a NPM package using publishtogit has the following advantages:
 3.  Similar to publishing a Node.js package to the NPM registry, `npm pack` is
     invoked within the _development repo_ to create the distributable version of
     your package.  Because, `npm pack` is used, the set of distributable files
-    will be determined by any .gitignore or .npmignore file present.  If you are
+    will be determined by any .gitignore or .npmignore files present.  If you are
     using a transpiled language, you would use .npmignore to ignore the original
-    (pre-transpilation) source files.  By doing so, only the built files will be
-    published.
+    source files.  By doing so, only the built files will be published.
 4.  The files to be published are copied into the the _publish repository_
     created in step 2.
 5.  The published files are committed in the _publish repository_.
 6.  Tags are applied to the commit.
 6.  The tags are pushed to the _publish repository's_ `origin` remote.
-7.  Library users may now consume the published library by specifying the
-    published Git commit URL.
+7.  A completion message is printed, providing the Git URL that refers to the
+    publish commit just created.  Consumers of the package can add this URL as a
+    dependency in thier projects.
 
-## How to use publishtogit
-1.  Install publishtogit.  If you want to install it globally:
+## Installing publishtogit
+1.  To install globally:
     ```
     npm install -g https://github.com/kwpeters/publishtogit.git#latest
     ```
-    You can also install it locally within your project:
+    To install locally within a project:
     ```
     npm install https://github.com/kwpeters/publishtogit.git#latest
     ```

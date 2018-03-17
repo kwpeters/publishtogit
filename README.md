@@ -16,11 +16,10 @@ distributing them can be problematic for the following reasons:
   within a smaller circle (such as within a company).  Of course, you could
   setup a [private NPM registry](http://lmgtfy.com/?q=private+npm+registry),
   but who really needs yet another server to setup and maintain?
-- Fortunately, the creators of NPM were wise and provided an alternative to
-  registries; they allowed libraries to be brought into a project simply by
-  referencing the [library's
+- Fortunately, NPM provides an alternative to registries; npm allows libraries
+  to be brought into a project simply by referencing the [library's
   URL](https://docs.npmjs.com/files/package.json#urls-as-dependencies).  A URL
-  can either point at a Git "commit-ish" or a tarball.  Using a URL that
+  can point at either a Git "commit-ish" or a tarball.  Using a URL that
   references a commit-ish works well for pure JavaScript projects where the source
   files are the same as those consumed by the library's users.  However, in cases
   where transpilation is needed (like when using

@@ -1,6 +1,6 @@
 {
   "name": "publishtogit",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A command line tool for publishing a npm package to a Git repository",
   "bin": {
     "publishtogit": "./dist/publishtogit.js"

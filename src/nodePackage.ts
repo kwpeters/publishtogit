@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import {Directory, File} from "oofs";
-import {spawn} from "./spawn";
+import {spawn} from "asynchrony";
 import {config} from "./publishToGitConfig";
 import {gitUrlToProjectName} from "./url";
 

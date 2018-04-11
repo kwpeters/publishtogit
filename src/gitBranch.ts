@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import {GitRepo} from "./gitRepo";
-import {spawn} from "./spawn";
+import {spawn} from "asynchrony";
 import {Validator} from "./validator";
 
 

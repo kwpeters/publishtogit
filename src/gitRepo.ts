@@ -1,5 +1,5 @@
 import {Directory, File} from "oofs";
-import {spawn} from "./spawn";
+import {spawn} from "asynchrony";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";
 import * as _ from "lodash";

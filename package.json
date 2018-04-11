@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/kwpeters/publishtogit#readme",
   "devDependencies": {
+    "@types/bluebird": "^3.5.20",
     "@types/jasmine": "2.8.2",
     "@types/lodash": "4.14.91",
     "@types/node": "8.0.57",
@@ -41,7 +42,10 @@
     "typescript": "2.4.2"
   },
   "dependencies": {
+    "asynchrony": "git+https://github.com/tewl/asynchrony.git#v1.0.0",
+    "bluebird": "^3.5.1",
     "lodash": "4.17.4",
+    "oofs": "git+https://github.com/tewl/oofs.git#v1.0.0",
     "semver": "5.5.0",
     "strip-json-comments": "2.0.1",
     "yargs": "11.0.0"

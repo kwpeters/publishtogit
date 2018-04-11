@@ -1,7 +1,6 @@
 import {GitRepo} from "../src/gitRepo";
 import {sampleRepoDir, sampleRepoUrl, tmpDir} from "./specHelpers";
-import {Directory} from "../src/directory";
-import {File} from "../src/file";
+import {Directory, File} from "oofs";
 import * as _ from "lodash";
 import {Url} from "../src/url";
 import {CommitHash} from "../src/commitHash";

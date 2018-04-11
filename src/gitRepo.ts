@@ -1,5 +1,4 @@
-import {Directory} from "./directory";
-import {File} from "./file";
+import {Directory, File} from "oofs";
 import {spawn} from "./spawn";
 import {IPackageJson} from "./nodePackage";
 import {GitBranch} from "./gitBranch";

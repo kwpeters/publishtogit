@@ -1,6 +1,6 @@
 import {GitBranch} from "../src/gitBranch";
 import {GitRepo} from "../src/gitRepo";
-import {Directory} from "../src/directory";
+import {Directory} from "oofs";
 
 
 describe("GitBranch", () => {

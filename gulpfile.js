@@ -13,6 +13,7 @@ const del = require("del");
 gulp.task("default", () => {
     const usage = [
         "Gulp tasks",
+        "  clean  - Delete built and temporary files",
         "  tslint - Run TSLint on source files",
         "  ut     - Run unit tests",
         "  build  - Run TSLint, unit tests, and compile TypeScript"

@@ -2,7 +2,7 @@
 
 import * as _ from "lodash";
 import {config as globalConfig} from "./publishToGitConfig";
-import {Directory} from "./directory";
+import {Directory} from "oofs";
 import {GitRepo} from "./gitRepo";
 import {NodePackage} from "./nodePackage";
 import * as yargs from "yargs";

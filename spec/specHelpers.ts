@@ -1,4 +1,4 @@
-import {Directory} from "../src/directory";
+import {Directory} from "oofs";
 
 export const sampleRepoUrl = "https://github.com/kwpeters/sampleGitRepo-src.git";
 export const sampleRepoDir = new Directory(__dirname, "..", "..", "sampleGitRepo-src");

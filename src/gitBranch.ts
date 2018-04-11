@@ -1,7 +1,7 @@
+import * as _ from "lodash";
 import {GitRepo} from "./gitRepo";
 import {spawn} from "./spawn";
 import {Validator} from "./validator";
-import * as _ from "lodash";
 
 
 export class GitBranch

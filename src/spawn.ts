@@ -2,7 +2,7 @@ import {CollectorStream} from "./collectorStream";
 import * as cp from "child_process";
 import {Writable} from "stream";
 import {NullStream} from "./nullStream";
-import {eventToPromise} from "./promiseHelpers";
+import {eventToPromise} from "asynchrony";
 import * as _ from "lodash";
 
 
@@ -92,7 +92,7 @@ function getCommandLineRepresentation(cmd: string, args: Array<string>): string
 {
     args = args.map((curArg) =>
     {
-        if (curArg.includes(" "))
+        if (_.includes(curArg, " "))
         {
             return `"${curArg}"`;
         } else

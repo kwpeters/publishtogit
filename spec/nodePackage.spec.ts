@@ -1,5 +1,4 @@
-import {Directory} from "../src/directory";
-import {File} from "../src/file";
+import {Directory, File} from "oofs";
 import {NodePackage} from "../src/nodePackage";
 import {tmpDir} from "./specHelpers";
 

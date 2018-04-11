@@ -1,5 +1,5 @@
 import {Transform} from "stream";
-import {Deferred} from "./deferred";
+import {Deferred} from "asynchrony";
 
 
 export class PrefixStream extends Transform

@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [2.0.6] 2018-07-31
+### Changed
+- Updated the version of gitlib so that this library and gitlib will be dependent
+  upon the same version of the stella library.  This will avoid unexpected
+  incompatibilities (see README.md).
+
+
 ## [2.0.5] 2018-07-31
 ### Changed
 Moved components into libraries so they can be reused.

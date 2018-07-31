@@ -1,6 +1,6 @@
 {
   "name": "publishtogit",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A command line tool for publishing a npm package to a Git repository",
   "bin": {
     "publishtogit": "./dist/publishtogit.js"
@@ -44,9 +44,11 @@
   "dependencies": {
     "asynchrony": "git+https://github.com/tewl/asynchrony.git#v1.0.0",
     "bluebird": "^3.5.1",
+    "gitlib": "git+https://github.com/tewl/gitlib.git#v1.0.0",
     "lodash": "4.17.4",
     "oofs": "git+https://github.com/tewl/oofs.git#v1.0.0",
     "semver": "5.5.0",
+    "stella": "git+https://github.com/tewl/stella.git#v1.3.0",
     "strip-json-comments": "2.0.1",
     "yargs": "11.0.0"
   }

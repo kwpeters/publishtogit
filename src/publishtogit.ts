@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
-import * as _ from "lodash";
-import {config as globalConfig} from "./publishToGitConfig";
-import {Directory} from "oofs";
-import {GitRepo} from "./gitRepo";
-import {NodePackage} from "./nodePackage";
-import * as yargs from "yargs";
-import {Url} from "./url";
-import {GitBranch} from "./gitBranch";
 import {userInfo} from "os";
+import * as _ from "lodash";
+import * as yargs from "yargs";
+import {Directory} from "oofs";
+import {NodePackage, Url} from "stella";
+import {GitRepo, GitBranch} from "gitlib";
+import {config as globalConfig} from "./publishToGitConfig";
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +196,7 @@ async function main(): Promise<void>
 
     // Publish the dev repo to the publish directory.
     console.log("Publishing package contents to publish repository...");
-    await instanceConfig.pkg.publish(publishDir, false);
+    await instanceConfig.pkg.publish(publishDir, false, globalConfig.tmpDir);
 
     // Stage and commit the published files.
     console.log("Commiting published files...");

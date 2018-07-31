@@ -29,7 +29,6 @@
     "@types/jasmine": "2.8.2",
     "@types/lodash": "4.14.91",
     "@types/node": "8.0.57",
-    "@types/semver": "5.5.0",
     "@types/strip-json-comments": "0.0.30",
     "@types/yargs": "10.0.1",
     "del": "3.0.0",
@@ -47,8 +46,7 @@
     "gitlib": "git+https://github.com/tewl/gitlib.git#v1.0.0",
     "lodash": "4.17.4",
     "oofs": "git+https://github.com/tewl/oofs.git#v1.0.0",
-    "semver": "5.5.0",
-    "stella": "git+https://github.com/tewl/stella.git#v1.3.0",
+    "stella": "git+https://github.com/tewl/stella.git#v1.4.0",
     "strip-json-comments": "2.0.1",
     "yargs": "11.0.0"
   }

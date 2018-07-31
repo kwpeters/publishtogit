@@ -43,7 +43,7 @@
   "dependencies": {
     "asynchrony": "git+https://github.com/tewl/asynchrony.git#v1.0.0",
     "bluebird": "^3.5.1",
-    "gitlib": "git+https://github.com/tewl/gitlib.git#v1.0.0",
+    "gitlib": "git+https://github.com/tewl/gitlib.git#v1.0.1",
     "lodash": "4.17.4",
     "oofs": "git+https://github.com/tewl/oofs.git#v1.0.0",
     "stella": "git+https://github.com/tewl/stella.git#v1.4.0",

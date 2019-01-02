@@ -118,5 +118,5 @@ Distributing a NPM package using publishtogit has the following advantages:
     ```
 6.  Publish.
     ```
-    ts-node src/publishtogit.ts --tag-version --tag latest --force-tags
+    ./node_modules/.bin/ts-node src/publishtogit.ts --tag-version --tag latest --force-tags
     ```

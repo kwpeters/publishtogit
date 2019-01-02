@@ -1,4 +1,4 @@
-import {Directory} from "oofs";
+import {Directory} from "./depot/directory";
 import * as os from "os";
 
 

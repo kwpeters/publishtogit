@@ -120,14 +120,3 @@ Distributing a NPM package using publishtogit has the following advantages:
     ```
     ts-node src/publishtogit.ts --tag-version --tag latest --force-tags
     ```
-
-
-## Miscellaneious Notes
-
-- This tool depends on the stella and gitlib libraries.  In addition, the gitlib
-  library depends on the stella library.  In order to avoid bugs related to the
-  use of the `instanceof` operator, this project and the gitlib library should
-  depend upon the same version of the stella library.  If they get out of sync,
-  there will actually be multiple constructors for the components within the
-  Stella library (such as Url).  Then when you pass instances of these objects
-  around and they are test with `instanceof`, you may get unexpected results.

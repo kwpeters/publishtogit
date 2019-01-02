@@ -3,9 +3,11 @@
 import {userInfo} from "os";
 import * as _ from "lodash";
 import * as yargs from "yargs";
-import {Directory} from "oofs";
-import {NodePackage, Url} from "stella";
-import {GitRepo, GitBranch} from "gitlib";
+import {Directory} from "./depot/directory";
+import {NodePackage} from "./depot/nodePackage";
+import {Url} from "./depot/url";
+import {GitRepo} from "./depot/gitRepo";
+import {GitBranch} from "./depot/gitBranch";
 import {config as globalConfig} from "./publishToGitConfig";
 
 

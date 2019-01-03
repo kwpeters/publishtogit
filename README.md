@@ -100,21 +100,20 @@ Distributing a NPM package using publishtogit has the following advantages:
     ```
     Once this is done, publishtogit can be run locally using `node_modules/.bin/publishtogit`.
 2.  Make sure your project's `package.json` properly defines the following properties:
-
-    | package.json property | How it is used                                                         |
-    |-----------------------|------------------------------------------------------------------------|
-    | version               | When --tag-version is used, this is the version number that is used.   |
-    | repository            | This is the URL of the project's repo.  This URL will be used when     |
-    |                       | cloning the project and when publishing the results.                   |
-    |                       | This must be specified in the form:                                    |
-    |                       | "repository": {                                                        |
-    |                       |     "type": "git",                                                     |
-    |                       |     "url": "https://blah/userororg/myproject.git"                      |
-    |                       | }                                                                      |
-    | main                  | This field is not used by publishtogit, but you should check its       |
-    |                       | value to make sure it is correct.  Since you are likely adding a       |
-    |                       | build procedure to your project, you may have to update it to          |
-    |                       | something like "dist/index.js".                                        |
+    - **version** - When `--tag-version` is used, this is the version number that is used.
+    - **repository** - This is the URL of the project's repo.  This URL will be
+      used when cloning the project and when publishing the results.  This must
+      be specified in the form:
+      ```
+      "repository": {
+          "type": "git",
+          "url": "https://blah/userororg/myproject.git"
+      }
+      ```
+    - **main** - This field is not used by publishtogit, but you should check its
+      value to make sure it is correct.  Since you are likely adding a build
+      procedure to your project, you may have to update it to something like
+      "dist/index.js".
 3.  Create a .npmignore file in the root of your project to exclude files that
     should not be published.
 

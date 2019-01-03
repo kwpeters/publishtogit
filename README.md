@@ -99,7 +99,10 @@ Distributing a NPM package using publishtogit has the following advantages:
     npm install --save-dev https://github.com/kwpeters/publishtogit.git#latest
     ```
     Once this is done, publishtogit can be run locally using `node_modules/.bin/publishtogit`.
-2.  Make sure your project's `package.json` properly defines the following properties:
+2.  Make sure your project's `package.json` properly defines the following
+    properties (see the
+    [package.json](https://docs.npmjs.com/files/package.json) documentation for
+    more information):
     - **version** - When `--tag-version` is used, this is the version number that is used.
     - **repository** - This is the URL of the project's repo.  This URL will be
       used when cloning the project and when publishing the results.  This must
@@ -113,9 +116,11 @@ Distributing a NPM package using publishtogit has the following advantages:
     - **main** - This field is not used by publishtogit, but you should check its
       value to make sure it is correct.  Since you are likely adding a build
       procedure to your project, you may have to update it to something like
-      "dist/index.js".
-3.  Create a .npmignore file in the root of your project to exclude files that
-    should not be published.
+      "dist/index.js".  This field is only needed if your Node.js module will
+      be required/imported by other code or you will be using `npm start`.
+3.  Define the set of files that should be published by doing one of the following:
+    - Set the "files" property in package.json
+    - Create a .npmignore file in the root of your project
 
 # Developing and releasing publishtogit
 

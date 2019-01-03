@@ -100,6 +100,7 @@ Distributing a NPM package using publishtogit has the following advantages:
     ```
     Once this is done, publishtogit can be run locally using `node_modules/.bin/publishtogit`.
 2.  Make sure your project's `package.json` properly defines the following properties:
+
     | package.json property | How it is used                                                         |
     |-----------------------|------------------------------------------------------------------------|
     | version               | When --tag-version is used, this is the version number that is used.   |

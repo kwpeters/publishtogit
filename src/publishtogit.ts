@@ -237,6 +237,9 @@ async function main(): Promise<void>
         return publishRepo.pushTag(curTagName, "origin", true);
     }));
 
+    // Fetch the newly created tags into the dev repo.
+    await instanceConfig.devRepo.fetch("origin", true);
+
     // Print a completion message.
     // Tell the user how to include the published repository into another
     // project's dependencies.

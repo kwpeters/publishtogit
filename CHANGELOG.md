@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.8] 2019-01-08
+### Added
+After publishing is complete, publishtogit now fetches the newly created tags in the development repo.
+
+
 ## [2.0.7] 2019-01-02
 ### Fixed
 - This tool no longer depends on the gitlib, asynchrony and stella libraries. 

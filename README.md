@@ -88,8 +88,10 @@ Distributing a NPM package using publishtogit has the following advantages:
     created in step 2.
 5.  The published files are committed in the _publish repository_.
 6.  Tags are applied to the commit.
-6.  The tags are pushed to the _publish repository's_ `origin` remote.
-7.  A completion message is printed, providing the Git URL that refers to the
+7.  The tags are pushed to the _publish repository's_ `origin` remote.
+8.  In the development repo, the origin remote is fetched in order to bring the
+    newly created tags into it.
+9.  A completion message is printed, providing the Git URL that refers to the
     publish commit just created.  Consumers of the package can add this URL as a
     dependency in thier projects.
 

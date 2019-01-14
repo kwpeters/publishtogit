@@ -120,7 +120,7 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
     const devBranch = await instanceConfig.devRepo.getCurrentBranch();
     if (!devBranch)
     {
-        throw new Error("HEAD does not current point to a branch.");
+        throw new Error("HEAD does not currently point to a branch.");
     }
 
     // The development repo should be pushed to origin.

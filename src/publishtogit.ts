@@ -61,7 +61,7 @@ function getArgs(): yargs.Arguments
             type: "boolean",
             default: false,
             demandOption: false,
-            describe: "Perform all operations but do not push to origin"
+            describe: "Perform all operations but do not push the publish commit to the project's repo"
         }
     )
     .version()  // version will be read from package.json!
@@ -102,6 +102,26 @@ async function getInstanceConfig(argv: yargs.Arguments): Promise<IInstanceConfig
 
 async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<void>
 {
+    // TODO: We should make sure that the origin remote...
+    //  $ git remote -vv
+    //  origin  https://github.com/kwpeters/publishtogit.git (fetch)
+    //  origin  https://github.com/kwpeters/publishtogit.git (push)
+    //  ... points to the same repo as package.json
+    //  (instanceConfig.pkg.config.repository.url)...
+    //  "repository": {
+    //      "type": "git",
+    //      "url": "git+https://github.com/kwpeters/publishtogit.git"
+    //    }
+
+    // TODO: We could just figure out what branch is being tracked using the
+    //  following command.  Then, get the remote's name and the remote's URL.
+    //  $ git branch -vv
+    //    develop                  caff9f1 [origin/develop: behind 2] Merge branch 'feature/193_production_outages/code' into 'develop'
+    //  * todo/ts_support          4f203d1 [origin/todo/ts_support] Reverted the repository property after testing.
+    // ... or even better ...
+    // $ git status -sb
+    // ## todo/ts_support...origin/todo/ts_support
+
     // Make sure there are no modified files.
     const modifiedFiles = await instanceConfig.devRepo.modifiedFiles();
     if (modifiedFiles.length > 0 )
@@ -124,6 +144,8 @@ async function checkInitialConditions(instanceConfig: IInstanceConfig): Promise<
     }
 
     // The development repo should be pushed to origin.
+    // Note:  Here we are assuming that origin in dev repo points to the Git
+    // repository specified in package.json's `repository` property.
     const deltas = await instanceConfig.devRepo.getCommitDeltas("origin");
     if ((deltas.ahead > 0) || (deltas.behind > 0))
     {
@@ -172,6 +194,8 @@ async function main(): Promise<void>
     // Clear out space for the publish repo.
     const publishDir = new Directory(globalConfig.tmpDir, instanceConfig.pkg.projectName);
     publishDir.deleteSync();
+
+    // TODO: Print out the URL of the repository cloning from (and publishing to).
 
     // Create a clone of the repo for publishing purposes.
     const repoUrl = Url.fromString(instanceConfig.pkg.config.repository.url);
@@ -233,11 +257,14 @@ async function main(): Promise<void>
 
     // Push all tags.
     await Promise.all(_.map(instanceConfig.tags, (curTagName) => {
+        // TODO: Change the following "origin" in text output to the repo's URL.
+        // Note:  It is ok to keep the "origin" in the pushTag() call.
         console.log(`Pushing tag ${curTagName} to origin.`);
         return publishRepo.pushTag(curTagName, "origin", true);
     }));
 
     // Fetch the newly created tags into the dev repo.
+    // TODO: Change the following remote name to the remote discovered above.
     await instanceConfig.devRepo.fetch("origin", true);
 
     // Print a completion message.

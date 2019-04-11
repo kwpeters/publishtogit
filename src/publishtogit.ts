@@ -244,6 +244,7 @@ async function main(): Promise<void>
         }
 
         const pkgJsonContents = pkgJson.readJsonSync<any>();
+
         // Remove @types from devDependencies
         for (const curPackageName of Object.keys(pkgJsonContents.devDependencies)) {
             if (/^@types\//.test(curPackageName)) {
@@ -259,8 +260,6 @@ async function main(): Promise<void>
         }
 
         pkgJson.writeJsonSync(pkgJsonContents);
-
-        process.exit(-1);
     }
 
 

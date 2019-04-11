@@ -4,6 +4,7 @@ import {userInfo} from "os";
 import * as _ from "lodash";
 import * as yargs from "yargs";
 import {Directory} from "./depot/directory";
+import {File} from "./depot/file";
 import {NodePackage} from "./depot/nodePackage";
 import {Url} from "./depot/url";
 import {GitRepo} from "./depot/gitRepo";
@@ -22,6 +23,7 @@ interface IInstanceConfig
     dryRun: boolean;
     tags: Array<string>;
     forceTags: boolean;
+    removeTypes: boolean;
 }
 
 
@@ -64,6 +66,14 @@ function getArgs(): yargs.Arguments
             describe: "Perform all operations but do not push the publish commit to the project's repo"
         }
     )
+    .option("remove-types",
+        {
+            type: "boolean",
+            default: false,
+            demandOption: false,
+            describe: "Remove '@types' packages from package.json in published commit"
+        }
+    )
     .version()  // version will be read from package.json!
     .wrap(80)
     .argv;
@@ -95,7 +105,8 @@ async function getInstanceConfig(argv: yargs.Arguments): Promise<IInstanceConfig
         tags: tags,
         devRepo: devRepo,
         pkg: pkg,
-        forceTags: argv["force-tags"]
+        forceTags: argv["force-tags"],
+        removeTypes: argv["remove-types"]
     };
 }
 
@@ -223,6 +234,35 @@ async function main(): Promise<void>
     // Publish the dev repo to the publish directory.
     console.log("Publishing package contents to publish repository...");
     await instanceConfig.pkg.publish(publishDir, false, globalConfig.tmpDir);
+
+    // If requested, remove all "@types" packages from package.json.
+    if (instanceConfig.removeTypes) {
+        const pkgJson = new File(publishDir, "package.json");
+        const exists = pkgJson.existsSync();
+        if (!exists) {
+            throw new Error("Did not find a package.json file in the published contents.");
+        }
+
+        const pkgJsonContents = pkgJson.readJsonSync<any>();
+        // Remove @types from devDependencies
+        for (const curPackageName of Object.keys(pkgJsonContents.devDependencies)) {
+            if (/^@types\//.test(curPackageName)) {
+                delete pkgJsonContents.devDependencies[curPackageName];
+            }
+        }
+
+        // Remove @types from dependencies
+        for (const curPackageName of Object.keys(pkgJsonContents.dependencies)) {
+            if (/^@types\//.test(curPackageName)) {
+                delete pkgJsonContents.dependencies[curPackageName];
+            }
+        }
+
+        pkgJson.writeJsonSync(pkgJsonContents);
+
+        process.exit(-1);
+    }
+
 
     // Stage and commit the published files.
     console.log("Commiting published files...");

@@ -100,7 +100,7 @@ Distributing a NPM package using publishtogit has the following advantages:
    publish commit just created.  Consumers of the package can add this URL as a
    dependency in their projects.
 
-## Setting up your project to use publishtogit
+## Setting up your project to publish using publishtogit
 
 1. Install publishtogit as a devDependency:
 
@@ -135,9 +135,24 @@ Distributing a NPM package using publishtogit has the following advantages:
    - Set the "files" property in package.json
    - Create a .npmignore file in the root of your project
 
+
+## Setting up a project to use a package that was published using publishtogit
+
+To create a dependency on a package that has been published using publishtogit,
+simply add its URL to your `dependencies` or `devDependencies`:
+
+```json
+{
+  // yada, yada, yada
+  "dependencies": {
+    "some-package": "git+https://git.server.com/myOrg/packageName.git#<commitHash>"
+  }
+}
+```
+
 ## Developing and releasing publishtogit
 
-## Creating a release
+### Creating a release
 
 1. Update the version in package.json according to semver rules.
 2. Update CHANGELOG.md to describe changes.
